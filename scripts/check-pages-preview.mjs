@@ -4,6 +4,9 @@ import { readFileSync } from "node:fs"
 import { canonicalOrigin } from "./build-hosting.mjs"
 const origin = canonicalOrigin(readFileSync(new URL("../out/index.html", import.meta.url), "utf8"))
 const base = "http://127.0.0.1:8788"
+const expected = new URL(origin)
+expected.protocol = "https:"
+const redirectOrigin = expected.origin
 for (let attempt = 0; ; attempt++) {
   try {
     const response = await fetch(base)
@@ -23,7 +26,7 @@ for (const route of [
 ]) {
   const response = await fetch(base + route, { redirect: "manual" })
   const location = response.headers.get("location")
-  if (response.status !== 301 || !location || new URL(location, base).origin !== origin)
+  if (response.status !== 301 || !location || new URL(location, base).origin !== redirectOrigin)
     throw new Error(`Unsafe or missing Pages redirect: ${route}: ${response.status} ${location}`)
 }
 for (const [route, status] of [

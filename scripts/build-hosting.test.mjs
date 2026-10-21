@@ -35,3 +35,19 @@ test("English wildcard destinations stay on the canonical host for arbitrary sla
   ])
     assert.equal(new URL(target.replace(":splat", suffix)).origin, "https://website.example")
 })
+
+test("HTTP development emits HTTPS targets accepted by Pages without unsafe relative wildcards", () => {
+  const rules = pagesRedirects("http://localhost:3002")
+  assert.match(rules, /^\/en https:\/\/localhost:3002\/ 301$/m)
+  const target = rules
+    .split("\n")
+    .find((line) => line.startsWith("/en/* "))
+    .split(" ")[1]
+  for (const suffix of [
+    "product",
+    "/attacker.example",
+    "//attacker.example",
+    "%2F%2Fattacker.example",
+  ])
+    assert.equal(new URL(target.replace(":splat", suffix)).origin, "https://localhost:3002")
+})
