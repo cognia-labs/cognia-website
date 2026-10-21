@@ -2,6 +2,9 @@ packages:
   - .
 
 overrides:
+  # Patched build-tool dependencies; keep the standalone graph aligned with upstream advisories.
+  sharp: "^0.35.5"
+  undici: "^7.29.1"
   "react": "19.3.0"
   "react-dom": "19.3.0"
   "@types/react": "19.3.0"
