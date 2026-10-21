@@ -1,6 +1,6 @@
 {
-  "readAt": "2026-10-21T04:30:34.486Z",
-  "lastGoodReadAt": "2026-10-21T04:30:34.486Z",
+  "readAt": "2026-10-21T06:13:14.488Z",
+  "lastGoodReadAt": "2026-10-21T06:13:14.488Z",
   "errors": [],
   "repo": {
     "stars": 7,
@@ -2051,34 +2051,10 @@
       "date": "2026-09-06T03:14:52+08:00"
     },
     {
-      "id": "collab-capabilities-endpoint",
-      "bump": "minor",
-      "summary": "Collaboration server: adds server-side feature rollout policies (operator `rollout show/apply` with an audit trail), a per-organization capabilities endpoint reporting your role, granted actions and each shared feature's availability with its reason, org-scoped Host service credentials, and atomic organization ownership transfer.",
-      "date": "2026-10-20T20:17:15+08:00"
-    },
-    {
-      "id": "collab-db-role-split",
-      "bump": "patch",
-      "summary": "Collaboration server: migrations now run on a separate admin connection and the server queries as an ordinary database role, so row-level security is enforced; it refuses to start on a superuser or BYPASSRLS role unless `COLLAB_ALLOW_PRIVILEGED_DB_ROLE=true`, and `/health` reports `rls`. Compose provisions the `cognia_collab_app` role automatically and now forwards the shared-chat, Canvas and feed switches.",
-      "date": "2026-10-20T19:10:41+08:00"
-    },
-    {
       "id": "collab-feishu-union-from-logto-raw-data",
       "bump": "patch",
       "summary": "Collaboration server reads the Feishu union id and tenant key from Logto's connector data, so a Feishu sign-in links to the same person's bot identities instead of a per-app open id.",
       "date": "2026-10-04T21:39:39+08:00"
-    },
-    {
-      "id": "collab-rollout-enforcement",
-      "bump": "patch",
-      "summary": "Collaboration server: a paused, killed or not-yet-offered shared feature now refuses new shared chats, invites, runs and Canvas edits with a `feature_unavailable` reason while reads, exports, leaving and cancelling keep working; sessions and Canvas documents remember the protocol version they were created with, so an older client can read them but not change them.",
-      "date": "2026-10-20T21:11:15+08:00"
-    },
-    {
-      "id": "collab-standing-revocation",
-      "bump": "patch",
-      "summary": "Collaboration server: losing an organization or workspace seat now clamps or removes shared-session access, ends live chat streams and canvas sockets, revokes pending invites and queued file work, and requires the service credential for metrics.",
-      "date": "2026-10-20T18:59:35+08:00"
     },
     {
       "id": "collaboration-plane-is-reachable",
@@ -2439,12 +2415,6 @@
       "bump": "patch",
       "summary": "`cognia-agent config get` now resolves dotted keys (`agentBackends.pi-rpc.model`, `providers.deepseek.baseURL`, `statusBar.theme`) by walking nested config instead of only matching top-level keys, with secrets still redacted on the way down. `config set` gains routes for `providers.<id>.model` and `agentBackends.<preset>.model`, so every config path the CLI can write is also readable — previously `config get agentBackends.pi-rpc.model` answered `unknown key`.",
       "date": "2026-09-21T22:50:16+08:00"
-    },
-    {
-      "id": "config-governance-plugin",
-      "bump": "minor",
-      "summary": "Add the built-in Config Governance plugin: it audits your instruction files, agent files, Skills, characters, templates and prompt overrides for dated, conflicting and stale rules, replays past sessions to show which rules are actually followed, can enforce a rule with a tool-call reminder or block, and compares adherence and eval results before and after a change. Plugins can read agent configuration through the new `ctx.agentConfig` and write changes back with per-surface confirmation; a plugin's deny reason now reaches the agent, and the Prompt Center opens a resource from a link.",
-      "date": null
     },
     {
       "id": "connections-single-host-notice",
@@ -3527,12 +3497,6 @@
       "date": "2026-07-15T20:34:23+08:00"
     },
     {
-      "id": "external-agent-sub-task-models",
-      "bump": "minor",
-      "summary": "External agents on a Cognia model can run their sub-tasks on other models from the same provider account. Claude Code subagents and model aliases, Codex sub-agents and OpenCode subagents and helper calls can each be set in the agent editor, the paired Host editor and subagent templates. Each task is limited to exactly the models it was given.",
-      "date": "2026-10-20T17:27:07+08:00"
-    },
-    {
       "id": "external-agent-surfaces-ux-pass",
       "bump": "minor",
       "summary": "Rework the external-agent surfaces for density and navigability. The settings tab\nbecomes a fixed two-pane layout with a navigation rail (global settings,\ndelegation rules, quick start, agent roster) and an independently scrolling\ndetail pane — selecting an agent is no longer a one-way door, agents can be\nconnected straight from the list, and per-agent Edit/Delete moved up beside the\nconnect action. The agent editor groups its long form into collapsible sections\n(connection / protocol options / timeout & retry), pairs protocol with transport,\nadds a folder picker for the working directory, and finally exposes the Codex\napp-server protocol in the manual picker. The chat-side manager compacts each\nagent card to a single row, caps the roster height so diagnostics and sessions\nstay reachable, and replaces the native `window.confirm` removal prompt with the\napp's own confirmation dialog. The mobile page puts each agent's permission mode\nbeside its enable switch, one row per agent.",
@@ -4073,12 +4037,6 @@
       "date": "2026-09-18T23:56:28+08:00"
     },
     {
-      "id": "harness-evolution",
-      "bump": "minor",
-      "summary": "Harness Evolution (ADR-0237, off by default): agents can now improve their own instructions, guardrails, memory, tool guidance, skills, subagents and tool rules from evidence. Turn it on in Settings → Harness Evolution, then start a run from an agent's new Evolve page: candidate harnesses are proposed, tried on the task in isolated probes, combined and compared against the current harness under a cost, token, call and time budget shown before anything is spent and live while it runs. The run viewer shows every step's evidence, a side-by-side comparison of any two harnesses, the selection and its risk, and what the reflection learned; changes beyond one task wait for your approval and can be rolled back. A separate Experience Library keeps the lessons runs draw (never mixed into Memory), version history lets you compare and restore any earlier harness, adopted tool rules apply live, and in failure-triggered or background mode a turn that fails through the agent's own conduct offers (or queues) a run on the failed request.",
-      "date": "2026-10-20T06:08:29+08:00"
-    },
-    {
       "id": "headless-attachment-cache-upkeep",
       "bump": "patch",
       "summary": "Headless hosts can now sweep the connector attachment cache. `connectors_attachment_list`, `_delete`, `_evict_adapter` and `_enforce_budget` existed only as desktop Tauri commands, so on a headless host the \"Connector attachment cache upkeep\" task failed on every housekeeping cycle with `the requested command is not registered` — the orphaned-blob sweep and the total-bytes ceiling never ran, and the encrypted cache grew without a bound. All four now have companion RPC arms (service-scope, typed request/response contracts), and a new guard test fails whenever a `connectors_*` wrapper the brain can send has no remote dispatch arm.",
@@ -4265,12 +4223,6 @@
       "date": "2026-10-12T12:04:36+08:00"
     },
     {
-      "id": "host-data-unpartitioned",
-      "bump": "patch",
-      "summary": "Multi-tenant Hosts refuse Host-stored client data commands (messages, files library, pet, issues, characters, glance, push tokens) from tenant devices with `host_data_unpartitioned` until that data is partitioned per person; single-user Hosts are unchanged.",
-      "date": "2026-10-21T02:51:17+08:00"
-    },
-    {
       "id": "host-declares-its-own-state-scope",
       "bump": "patch",
       "summary": "Fix a paired browser or phone never bringing its Host online. The Host stores\nhost-state under its own runtime target, but every client addressed it by the\nid it filed the pairing under, so the Host refused each `host_state_*` call\nwith `host_state_scope_mismatch` and the client retried the manifest forever —\n\"Host is offline\" with a spinner that never resolved. The Host now declares the\nscope its state actually lives under, clients address it that way, and the\nrefusal names which of its six causes fired instead of one sentence for all.",
@@ -4325,12 +4277,6 @@
       "date": "2026-08-28T18:55:53+08:00"
     },
     {
-      "id": "host-refusal-labels",
-      "bump": "patch",
-      "summary": "Refusals from a multi-tenant Host now explain themselves: data that is not available on a shared Host yet, work the Host cannot run, and requests without a workspace each get their own label instead of an unknown error, and Host permission refusals read as access denied.",
-      "date": "2026-10-21T02:56:02+08:00"
-    },
-    {
       "id": "host-reports-its-name",
       "bump": "patch",
       "summary": "A Host now reports its name (`COGNIA_HOST_NAME`, else the machine name) so paired apps no longer label it by its address, such as 127.0.0.1 for a relay-only server.",
@@ -4341,12 +4287,6 @@
       "bump": "patch",
       "summary": "An always-on host's device page now has a Runtimes section: it lists the host's background runtimes, leads with any that failed to start and why, and restarts one at a time without restarting the host (also available as `host_runtime_status` / `host_runtime_restart` through `cognia host call`).",
       "date": "2026-10-15T15:40:16+08:00"
-    },
-    {
-      "id": "host-sandbox-binding",
-      "bump": "minor",
-      "summary": "Multi-tenant Hosts bind every sandbox to the org, workspace, actor and run they admitted: workspaces mount read-only without write access, each task gets private scratch, mount roots must sit under `COGNIA_WORKSPACE_ROOTS_DIR`, and injecting a credential needs `credential.use`, with placement reports labelling brokered versus injected credentials.",
-      "date": "2026-10-21T02:46:08+08:00"
     },
     {
       "id": "host-sealed-provider-keys-on-phone",
@@ -4371,12 +4311,6 @@
       "bump": "minor",
       "summary": "Remote sessions: a run's state now says what actually happened, not what was asked for.\n\n**Stopping a run no longer looks stopped until it stops.** Pressing stop marked the turn finished immediately. If the request never reached the agent — a dropped connection, a busy host — the session read as stopped while the run kept going, and the composer came back for a turn that was still producing. A stop now shows as _stopping_ until the agent confirms it, and if the request never lands the session goes back to running and says the stop failed.\n\n**Answering a prompt from a phone that drops out no longer loses the prompt.** Approving or declining a tool used to remove the request the moment you tapped, so an answer that never reached the desktop took the prompt with it — the run stayed blocked with nothing left to answer, recoverable only by reloading. The request now stays visible and marked as being answered, and returns to the queue if the answer does not arrive. If two devices answer at once, the second is told the first got there and refreshes, instead of overwriting it.\n\n**A run waiting on several things shows all of them.** Approvals and questions were tracked in separate slots that could overwrite each other, so a second request could hide the first and strand the run on a prompt nothing displayed. They are now one list in the order the run raised them.\n\n**A turn ending is not the conversation ending.** The end of one turn — and an agent restart — used to shut the composer for good. Both are now separate from whether the conversation exists: after a turn finishes or the agent restarts you can keep going, and only a deleted conversation locks it. A restart marks the interrupted work as interrupted and retryable rather than silently leaving it \"running\".\n\n**A queued message that fails to send says so.** Sends, follow-ups, steers, stops and answers each carry their own status now — accepted, on its way, confirmed, or failed — so the app can tell a message that is still going from one that never left, and offer retry only where retrying makes sense. Queuing a message also no longer reports the transcript as changed before anything is written.\n\n**Restarting the desktop picks up work left in flight.** Requests interrupted mid-send used to sit in the host's ledger forever after a restart, with the device that submitted them waiting on a reply that was never coming. They are now retried on startup, turns left running by the previous session are closed out, and if that recovery itself fails the host reports itself as degraded rather than presenting stale state as current.\n\n**On upgrade:** cached remote-session coordination state is discarded and rebuilt on the next connection — conversations, messages and drafts are untouched. Messages still queued for sending that were written in the old format are dropped, because they can no longer be delivered.",
       "date": "2026-08-23T09:36:47+08:00"
-    },
-    {
-      "id": "host-surface-gate",
-      "bump": "minor",
-      "summary": "Gate every Host surface in multi-tenant mode by collaboration standing, refuse to boot without sandbox isolation (or run control-plane-only with `COGNIA_EXECUTION=disabled`), and advertise execution availability in the Host auth config.",
-      "date": "2026-10-21T01:16:40+08:00"
     },
     {
       "id": "host-system-details-section",
@@ -4407,12 +4341,6 @@
       "bump": "minor",
       "summary": "An always-on host can now take scheduled tasks and Bots that belong to a workspace with a git repository: the workspace goes along, and the host runs its work in a clone of the repository when the folder is not on the host.",
       "date": "2026-10-12T10:57:57+08:00"
-    },
-    {
-      "id": "hot-adults-fold",
-      "bump": "patch",
-      "summary": "Block DNS rebinding in guarded desktop HTTP requests and streams by checking and pinning resolved addresses on every redirect hop.",
-      "date": "2026-10-20T00:45:16+08:00"
     },
     {
       "id": "hover-message-actions",
@@ -6275,12 +6203,6 @@
       "date": "2026-07-15T19:23:29+08:00"
     },
     {
-      "id": "org-capabilities-ui",
-      "bump": "minor",
-      "summary": "Shows what you can do in each shared workspace: a new \"Your access\" card lists your organization and workspace roles, the actions you are granted, and whether each shared feature is available with the reason when it is not. The sidebar user card can switch organizations, owners can transfer organization ownership from the members list, and shared-chat, invite and Canvas collaboration entry points now follow the server's rollout decision.",
-      "date": "2026-10-20T20:21:30+08:00"
-    },
-    {
       "id": "outbound-queue-review",
       "bump": "patch",
       "summary": "The \"N queued\" banner on phones now has a Review button listing what is waiting for the host: actions that have not started sending can be withdrawn, and ones that gave up or were refused can be retried or discarded.",
@@ -6893,12 +6815,6 @@
       "date": "2026-08-25T14:29:28+08:00"
     },
     {
-      "id": "plugin-quick-action-manifest-command",
-      "bump": "patch",
-      "summary": "Fix plugin quick actions that name one of the plugin's own manifest commands doing nothing when chosen from the command palette.",
-      "date": null
-    },
-    {
       "id": "plugin-repo-cache-reuse",
       "bump": "patch",
       "summary": "A plugin asking for a repository workspace no longer re-clones it every time. The per-plugin cache directory was only ever used as a clone _destination_, so a plugin that scans a repository paid a full network clone on every run; it now refreshes the existing checkout instead. A cache directory left holding a different repository is cleared rather than cloned over — previously that made `git clone` fail on a non-empty directory and the plugin could never acquire the workspace again.",
@@ -7089,12 +7005,6 @@
       "bump": "minor",
       "summary": "Presentations plugin overhaul: declarative manifest i18n (en + zh-CN) replaces activation-frozen labels, the slide renderer now uses host design tokens with container-query font scaling, rounded shapes, real charts/tables, speaker notes, an empty state, and a live validation panel. PPTX import keeps slide order, geometry, text runs, images, tables, native chart data, and speaker notes instead of flattening everything to text; export allocates collision-free shape ids and normalizes colors. Tool schemas are closed per element type with structural validation in the model layer, results render in a shared `ToolCard` with an open-artifact action, and file/ownership handling is tightened (single-file picker, owner checks, source-filename export names).",
       "date": "2026-09-15T00:40:19+08:00"
-    },
-    {
-      "id": "preserve-route-state-shell-resize",
-      "bump": "patch",
-      "summary": "Preserve open dialogs and unsaved route drafts when resizing the web shell across 768px.",
-      "date": null
     },
     {
       "id": "pro-ide-agent-bidirectional",
@@ -7383,12 +7293,6 @@
       "bump": "patch",
       "summary": "Stopping a project thread whose turn fails to stop now still marks it interrupted and releases it, coalesced thread reports survive a deleted reporter, and the agent browser refuses an unknown user-chrome browser instead of silently attaching to Chrome.",
       "date": "2026-09-30T12:34:06+08:00"
-    },
-    {
-      "id": "prompt-center",
-      "bump": "minor",
-      "summary": "Add the Prompt Center (Settings → Prompts): every prompt Cognia ships, from chat and mode prompts to titles, judges, team planning, memory, Router Fusion roles and the environment bootstrap agent, can be compared with its shipped text, edited with live validation, drafted, published for the account, a workspace, an agent or a session, previewed in send order for a new chat, restored from history, reset, and exported or imported as a profile. Prompts you already own (agents, presets, Skills, modes, instruction files, workspace instructions, the default system prompt, subagent and team templates) are edited in the same place through their own owners, with copies for built-in and plugin items. Plugins can make their wording editable through the new `ctx.prompts` SDK namespace; Deep Research's instructions and every plugin subagent's prompt are now editable, and overrides of a disabled plugin are kept and shown as unavailable.",
-      "date": "2026-10-20T06:46:44+08:00"
     },
     {
       "id": "prompt-mention-namespace",
@@ -8831,12 +8735,6 @@
       "date": "2026-09-12T20:09:03+08:00"
     },
     {
-      "id": "shared-run-heartbeat-transient",
-      "bump": "patch",
-      "summary": "A shared-chat run no longer stops on a single network blip during its lease heartbeat; it stops immediately when the server refuses the lease, and otherwise only once the lease could no longer be renewed.",
-      "date": "2026-10-20T19:47:15+08:00"
-    },
-    {
       "id": "shared-tauri-listeners",
       "bump": "patch",
       "summary": "Requests a paired client or plugin sends through the desktop host no longer time out after the window remounts its listeners.",
@@ -9917,12 +9815,6 @@
       "date": "2026-09-01T00:27:49+08:00"
     },
     {
-      "id": "terminal-ai-shell",
-      "bump": "minor",
-      "summary": "Mount AI Shell in the terminal dock with verified command results, cancellation, and editable planning and error-advice prompts.",
-      "date": null
-    },
-    {
       "id": "terminal-dock-layout-a11y",
       "bump": "patch",
       "summary": "Terminal dock layout and accessibility fixes: the dock's resize handle now has a larger, easier-to-grab hit target (including by touch) while keeping its thin visible line, a tab's close button is now reachable by keyboard focus instead of only appearing on hover, and the command-completion popup no longer clips against the top of a short dock — it caps its list to the space above the cursor and scrolls internally. The floating-surface sizes were also consolidated into one place for consistency.",
@@ -9987,12 +9879,6 @@
       "bump": "minor",
       "summary": "Custom themes now cover every colour the app actually paints with, and both variants are editable. The theme editor grows from 27 tokens to 56 — status colours, the five chart series, workflow node and status colours, the Ultra effort accent, and the brand triple were all live in the UI via Tailwind but unreachable from a theme, so recolouring the shell left charts and workflow nodes on the factory palette. A light/dark switch edits each variant independently (previously one switch re-interpreted a single palette and the second side was overwritten by a derivation on save), a search box filters the token list, and the live preview gained status, chart, and workflow swatches so the new points are visible while you drag them. Aliased tokens keep tracking their source: retint `warning` and the \"running\" workflow badge follows unless you override it. \"Edit a copy\" of a built-in or plugin theme now opens that copy in the editor instead of a blank draft, and a plugin's CSS-variable palette is lifted into editable tokens rather than left as an opaque override that painted over your edits. Also fixes three WCAG AA failures in the shipped palette: `--destructive-foreground` was never declared (so `text-destructive-foreground` compiled to nothing at 33 call sites and destructive dialogs used near-black text in dark mode), and light-mode success/info badge text and muted text all sat just under 4.5:1.",
       "date": "2026-08-27T16:12:41+08:00"
-    },
-    {
-      "id": "themed-confirmations-shared-primitives",
-      "bump": "patch",
-      "summary": "Confirmations that used the browser's own `confirm` / `prompt` boxes (clearing the automation audit log, removing a Host, MCP app approvals, inbound retries, override promotion, terminal take-over, permission ceilings, the storage reset, task-workspace applies) now use the app's themed dialogs, and choosing a replacement Host is a pick list instead of typing its id. Tab strips in Diagnostics, quick unlock, mobile Goals and usage diagnostics respond to the arrow keys, four data tables follow the table-density setting, Files thumbnails keep their loading shimmer under reduced motion, Best-of-N publish, image-workbench discard and tunnel take-over ask in a proper modal, and the conversation override, style sample and image catalog editors open as a bottom sheet on phones without losing edits when the window is resized.",
-      "date": null
     },
     {
       "id": "thick-jars-attend",
@@ -10901,18 +10787,6 @@
       "date": "2026-08-29T17:58:29+08:00"
     },
     {
-      "id": "web-reader-review-hardening",
-      "bump": "patch",
-      "summary": "Web reading now re-checks every redirect against the private-network guard (and, in the CLI, refuses names that resolve to private addresses), treats sign-in walls and protected files as final instead of sending them to another reader, and stops an in-flight read when you turn off web tools, a reader or a provider. Search no longer lets a provider's own defaults loosen strict safe search or your source filters, never falls back to a paid AI-grounded provider you did not choose, and caps every provider response at 8 MiB.",
-      "date": "2026-10-20T00:29:22+08:00"
-    },
-    {
-      "id": "web-search-reader-separation",
-      "bump": "minor",
-      "summary": "Web search and page reading are now configured separately. A new Reading section picks which readers may fetch a page (direct, original-site readers, Jina, FxTwitter, or a Tavily/Exa/DeepSeek/TinyFish reader that uses your existing search key), whether paid readers may act as fallback, and whether pages must be distilled; each reader has its own connection test. DeepSeek, TinyFish and self-hosted SearXNG search are available as opt-in providers. Specialized search types and engines are no longer silently downgraded, strict safe search can't be relaxed by the agent, blocked domains are filtered from images and answers as well as results, and every search and read now runs under one time budget that stops when you cancel. Bing is marked retired and Google Custom Search as legacy.",
-      "date": "2026-10-19T23:52:40+08:00"
-    },
-    {
       "id": "web-search-reliability-settings",
       "bump": "minor",
       "summary": "Web search: circuit-breaker settings and live provider health diagnostics, per-provider default overrides, backup-key connection testing, and settings polish.",
@@ -11424,24 +11298,24 @@
     }
   ],
   "inventory": {
-    "plugins": 75,
+    "plugins": 74,
     "connectors": 11,
     "workflowNodeKinds": 237,
     "crates": 70,
     "packages": 47,
-    "adrs": 232,
-    "testFiles": 12830
+    "adrs": 229,
+    "testFiles": 12670
   },
   "productSource": {
     "repository": "https://github.com/MaxQian888/cognia-next",
-    "commit": "0d138eefc6f1d3535ffd57db71a898e540e3686f",
-    "capturedAt": "2026-10-21T04:30:33.960Z",
-    "workingTreeDirty": true,
+    "commit": "9b1c3ac1ad4bb62ae478f63f90a7cf49a518a1b3",
+    "capturedAt": "2026-10-21T06:13:13.391Z",
+    "workingTreeDirty": false,
     "sourceSha256": {
-      "components/chat/chat-view.tsx": "5f08f2d2563ab5b38e14119428eeea08080e620c752e2a880f49ff24191a2b2b",
+      "components/chat/chat-view.tsx": "5a3e8540596cce0de7cfd59122b080cf3c5ff93b1af0a6c791c3cc4c20d60fe0",
       "components/artifacts/artifact-workspace-dock.tsx": "25ff38f63fe2f0910c6107785d8124627472cc548401704a4198782d5e096c4d",
       "components/chat/conversation-jump-pill.tsx": "4e623cbb49c123fbce17445beddd6afe42eb3b34b20f34b91e6fc54d42ac25fb",
-      "cli/src/cli/args.ts": "f402db547c25f2dec1dc1cd165f6f1c3205f8956ffbe7c0f6baaa6fe91442583",
+      "cli/src/cli/args.ts": "1cbd14e4d7fec3f6cfe1e95b320c44b21558c7a3792b0602a71afb12ffbd6cae",
       "browser-extension/wxt.config.ts": "c1d3928439dd7ffcf440dedfbc1b0c3705817b2cc2e8cd087ac154df76753af2",
       "lib/workflow/nodes/shared/executor-support.ts": "afe432049fdec10443de84fe04f1021d2f0d027aba85712c7df7028add5e42fa",
       "plugins/web-tools/plugin.json": "ee8ccca07ece9efdc69d5a975c092091291b4ff2aba6f3786eed55143730d05f"
