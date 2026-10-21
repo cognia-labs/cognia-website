@@ -2,7 +2,105 @@ import assert from "node:assert/strict"
 import { createServer } from "node:http"
 import { test } from "node:test"
 
-import { renderCard, sendWebhook } from "./transport.mjs"
+import { renderCard, sendAppBot, sendWebhook } from "./transport.mjs"
+
+const appInput = {
+  appId: "cli_test",
+  appSecret: "private-app-secret",
+  receiveIdType: "open_id",
+  receiveId: "ou_owner",
+  idempotencyKey: "feishu-v1-" + "a".repeat(32),
+  body: renderCard({ title: "Deployment", lines: ["Published"] }),
+}
+
+test("app bot exchanges its own credentials and sends a card with a stable UUID", async () => {
+  const calls = []
+  const result = await sendAppBot({
+    ...appInput,
+    fetchImpl: async (url, init) => {
+      calls.push({ url, ...init, json: JSON.parse(init.body) })
+      return calls.length === 1
+        ? response({ code: 0, tenant_access_token: "private-access-token", expire: 7200 })
+        : response({ code: 0, data: { message_id: "om_receipt" } })
+    },
+  })
+  assert.equal(
+    calls[0].url,
+    "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
+  )
+  assert.deepEqual(calls[0].json, { app_id: "cli_test", app_secret: "private-app-secret" })
+  assert.equal(
+    calls[1].url,
+    "https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=open_id"
+  )
+  assert.equal(calls[1].headers.Authorization, "Bearer private-access-token")
+  assert.deepEqual(JSON.parse(calls[1].json.content), appInput.body.card)
+  assert.equal(calls[1].json.receive_id, "ou_owner")
+  assert.equal(calls[1].json.uuid, appInput.idempotencyKey)
+  assert.equal(calls[1].redirect, "error")
+  assert.deepEqual(result, { outcome: "accepted", code: 0, messageId: "om_receipt", attempts: 1 })
+  assert.doesNotMatch(JSON.stringify(result), /private-/)
+})
+
+test("app bot refuses incomplete targets and never sends after failed authentication", async () => {
+  let calls = 0
+  const fetchImpl = async () => {
+    calls++
+    return response({ code: 10003 })
+  }
+  const invalid = await sendAppBot({ ...appInput, receiveIdType: "email", fetchImpl })
+  assert.equal(invalid.outcome, "invalid-target")
+  assert.equal(calls, 0)
+  const rejected = await sendAppBot({ ...appInput, fetchImpl })
+  assert.equal(rejected.outcome, "auth-failed")
+  assert.equal(calls, 1)
+})
+
+test("app bot retries explicit rate limits with the same UUID and never retries lost acknowledgements", async () => {
+  for (const uncertain of [false, true]) {
+    const messages = []
+    const waits = []
+    const result = await sendAppBot({
+      ...appInput,
+      sleep: async (ms) => waits.push(ms),
+      fetchImpl: async (url, init) => {
+        if (url.includes("tenant_access_token"))
+          return response({ code: 0, tenant_access_token: "t" })
+        messages.push(JSON.parse(init.body))
+        if (uncertain) throw new Error("private-app-secret private-access-token")
+        return messages.length === 1
+          ? response({}, 429, { "retry-after": "1" })
+          : response({ code: 0, data: { message_id: "om_receipt" } })
+      },
+    })
+    assert.equal(result.outcome, uncertain ? "delivery-unknown" : "accepted")
+    assert.equal(messages.length, uncertain ? 1 : 2)
+    assert.equal(waits.length, uncertain ? 0 : 1)
+    assert.ok(messages.every((message) => message.uuid === appInput.idempotencyKey))
+    assert.doesNotMatch(JSON.stringify(result), /private-/)
+  }
+})
+
+test("app bot requires a real message receipt and bounds token response reads", async () => {
+  const unknown = await sendAppBot({
+    ...appInput,
+    fetchImpl: async (url) =>
+      url.includes("tenant_access_token")
+        ? response({ code: 0, tenant_access_token: "t" })
+        : response({ code: 0 }),
+  })
+  assert.equal(unknown.outcome, "delivery-unknown")
+  let calls = 0
+  const oversized = await sendAppBot({
+    ...appInput,
+    fetchImpl: async () => {
+      calls++
+      return response({ code: 0, tenant_access_token: "x".repeat(20_000) })
+    },
+  })
+  assert.equal(oversized.outcome, "auth-failed")
+  assert.equal(calls, 1)
+})
 
 const url = "https://open.feishu.cn/open-apis/bot/v2/hook/test-token"
 const input = { url, secret: "demo-secret", body: renderCard({ title: "CI", lines: ["Failed"] }) }

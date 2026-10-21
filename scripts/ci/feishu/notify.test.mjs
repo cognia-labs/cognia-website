@@ -212,6 +212,65 @@ test("persisted claim permits one send and an accepted receipt suppresses replay
   )
 })
 
+test("app-bot plans preserve claim gating, recipient binding and credential redaction", async () => {
+  const f = liveFixture()
+  Object.assign(f.env, {
+    FEISHU_TRANSPORT: "app",
+    FEISHU_APP_ID: "cli_test",
+    FEISHU_APP_SECRET: "private-app-secret",
+    FEISHU_RECEIVE_ID_TYPE: "open_id",
+    FEISHU_RECEIVE_ID: "ou_private_owner",
+  })
+  const prepared = await prepare(f)
+  assert.equal(prepared.prepared, true)
+  for (const name of ["plan.json", "claim.json", "diagnostic.json", "preview.json", "preview.html"])
+    assert.doesNotMatch(
+      readFileSync(join(f.dir, name), "utf8"),
+      /private-app-secret|ou_private_owner/
+    )
+  f.claim(prepared.key)
+  f.env.FEISHU_RECEIVE_ID = "ou_changed"
+  await assert.rejects(
+    deliver({ ...f, send: async () => assert.fail("must not send") }),
+    /destination-changed/
+  )
+  f.env.FEISHU_RECEIVE_ID = "ou_private_owner"
+  const receipt = await deliver({
+    ...f,
+    send: async (destination) => {
+      assert.equal(destination.kind, "app")
+      assert.equal(destination.appId, "cli_test")
+      assert.equal(destination.receiveId, "ou_private_owner")
+      assert.equal(destination.idempotencyKey, prepared.key)
+      return { outcome: "accepted", code: 0, messageId: "om_receipt", attempts: 1 }
+    },
+  })
+  assert.equal(receipt.messageId, "om_receipt")
+  assert.doesNotMatch(
+    readFileSync(join(f.dir, "receipt.json"), "utf8"),
+    /private-app-secret|ou_private_owner/
+  )
+  f.artifacts.push({
+    id: 11,
+    name: `${prepared.key}-accepted`,
+    expired: false,
+    workflow_run: { id: 100 },
+  })
+  f.env.FEISHU_APP_SECRET = "rotated-secret"
+  assert.equal((await prepare(f)).reason, "already-accepted")
+})
+
+test("app-bot preview does not need an App Secret or create a claim", async () => {
+  const f = fixture({
+    FEISHU_TRANSPORT: "app",
+    FEISHU_APP_ID: "cli_test",
+    FEISHU_RECEIVE_ID: "ou_owner",
+  })
+  const result = await prepare(f)
+  assert.equal(result.outcome, "dry-run")
+  assert.equal(result.prepared, false)
+})
+
 test("unknown delivery blocks automatic replay and requires the explicit manual override", async () => {
   const f = liveFixture()
   const first = await prepare(f)

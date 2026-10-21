@@ -303,7 +303,7 @@ function retryDelay(response, attempt, now) {
   return Math.max(1000 * 2 ** (attempt - 1), Number.isNaN(supplied) ? 0 : supplied)
 }
 
-async function sendAttempt(url, body, fetchImpl, attempt, now) {
+async function sendAttempt(url, body, fetchImpl, attempt, now, options = {}) {
   const controller = new AbortController()
   let timer
   const deadline = new Promise((_, reject) => {
@@ -318,7 +318,7 @@ async function sendAttempt(url, body, fetchImpl, attempt, now) {
       (async () => {
         const response = await fetchImpl(url, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...options.headers },
           body,
           redirect: "error",
           signal: controller.signal,
@@ -342,7 +342,13 @@ async function sendAttempt(url, body, fetchImpl, attempt, now) {
         const envelope = await readEnvelope(response)
         const code = envelope?.code
         if (!Number.isSafeInteger(code)) return { outcome: "delivery-unknown" }
-        if (code === 0) return { outcome: "accepted", code }
+        if (code === 0) {
+          if (!options.requireReceipt) return { outcome: "accepted", code }
+          const messageId = envelope.data?.message_id
+          return typeof messageId === "string" && /^om_[A-Za-z0-9_-]+$/.test(messageId)
+            ? { outcome: "accepted", code, messageId }
+            : { outcome: "delivery-unknown" }
+        }
         if (code === 11232)
           return { outcome: "rate-limited", code, retryMs: retryDelay(response, attempt, now) }
         if ([19021, 19022].includes(code)) return { outcome: "auth-failed", code }
@@ -356,6 +362,119 @@ async function sendAttempt(url, body, fetchImpl, attempt, now) {
   } finally {
     clearTimeout(timer)
   }
+}
+
+async function retryDelivery(attempt, maxAttempts, sleep) {
+  const limit = Number.isFinite(maxAttempts) ? Math.min(3, Math.max(1, Math.floor(maxAttempts))) : 3
+  for (let attempts = 1; attempts <= limit; attempts++) {
+    const { retryMs, ...result } = await attempt(attempts)
+    if (result.outcome !== "rate-limited" || attempts === limit || retryMs > MAX_RETRY_DELAY_MS)
+      return { ...result, attempts }
+    try {
+      await sleep(retryMs)
+    } catch {
+      return { ...result, attempts }
+    }
+  }
+}
+
+async function appAccessToken(appId, appSecret, fetchImpl) {
+  const controller = new AbortController()
+  let timer
+  const deadline = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      controller.abort()
+      reject(new Error("Feishu authentication deadline exceeded"))
+    }, REQUEST_TIMEOUT_MS)
+  })
+  try {
+    return await Promise.race([
+      deadline,
+      (async () => {
+        const response = await fetchImpl(
+          "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ app_id: appId, app_secret: appSecret }),
+            redirect: "error",
+            signal: controller.signal,
+          }
+        )
+        if (!response.ok) {
+          discard(response)
+          return null
+        }
+        const envelope = await readEnvelope(response)
+        const token = envelope?.tenant_access_token
+        return envelope?.code === 0 &&
+          typeof token === "string" &&
+          token.length > 0 &&
+          token.length <= 8192 &&
+          !/[\r\n]/.test(token)
+          ? token
+          : null
+      })(),
+    ])
+  } catch {
+    return null
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/** Send as a custom application bot, with fixed API hosts and no stored access token. */
+export async function sendAppBot({
+  appId,
+  appSecret,
+  receiveIdType,
+  receiveId,
+  idempotencyKey,
+  body,
+  fetchImpl = fetch,
+  sleep = delay,
+  now = Date.now,
+  maxAttempts = 3,
+}) {
+  if (
+    !/^cli_[A-Za-z0-9]+$/.test(appId ?? "") ||
+    !["open_id", "user_id", "chat_id"].includes(receiveIdType) ||
+    !/^[A-Za-z0-9_-]{1,128}$/.test(receiveId ?? "") ||
+    !/^[A-Za-z0-9_-]{1,50}$/.test(idempotencyKey ?? "")
+  )
+    return { outcome: "invalid-target", attempts: 0 }
+  if (typeof appSecret !== "string" || !appSecret.trim())
+    return { outcome: "auth-failed", attempts: 0 }
+  let serialized
+  try {
+    if (body?.msg_type !== "interactive" || !body.card) throw new Error()
+    serialized = JSON.stringify({
+      receive_id: receiveId,
+      msg_type: "interactive",
+      content: JSON.stringify(body.card),
+      uuid: idempotencyKey,
+    })
+  } catch {
+    throw new Error("Invalid Feishu notification body")
+  }
+  if (Buffer.byteLength(serialized) >= BODY_LIMIT)
+    throw new Error("Invalid Feishu notification body")
+  const token = await appAccessToken(appId, appSecret, fetchImpl)
+  if (!token) return { outcome: "auth-failed", attempts: 0, reason: "token-unavailable" }
+  const url = `https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=${receiveIdType}`
+  return retryDelivery(
+    (attempts) =>
+      sendAttempt(url, serialized, fetchImpl, attempts, now, {
+        headers: { Authorization: `Bearer ${token}` },
+        requireReceipt: true,
+      }),
+    maxAttempts,
+    sleep
+  )
+}
+
+export function sendNotification(options) {
+  return options.kind === "app" ? sendAppBot(options) : sendWebhook(options)
 }
 
 /**
@@ -389,29 +508,19 @@ export async function sendWebhook({
   ) {
     throw new Error("Invalid Feishu notification body")
   }
-  const attemptsLimit = Number.isFinite(maxAttempts)
-    ? Math.min(3, Math.max(1, Math.floor(maxAttempts)))
-    : 3
-  for (let attempts = 1; attempts <= attemptsLimit; attempts++) {
-    const timestamp = Math.floor(now() / 1000).toString()
-    let sign
-    try {
-      sign = await feishuSign(timestamp, secret)
-    } catch {
-      throw new Error("Feishu signing failed")
-    }
-    const signed = JSON.stringify({ ...JSON.parse(serialized), timestamp, sign })
-    const { retryMs, ...result } = await sendAttempt(url, signed, fetchImpl, attempts, now)
-    if (
-      result.outcome !== "rate-limited" ||
-      attempts === attemptsLimit ||
-      retryMs > MAX_RETRY_DELAY_MS
-    )
-      return { ...result, attempts }
-    try {
-      await sleep(retryMs)
-    } catch {
-      return { ...result, attempts }
-    }
-  }
+  return retryDelivery(
+    async (attempts) => {
+      const timestamp = Math.floor(now() / 1000).toString()
+      let sign
+      try {
+        sign = await feishuSign(timestamp, secret)
+      } catch {
+        throw new Error("Feishu signing failed")
+      }
+      const signed = JSON.stringify({ ...JSON.parse(serialized), timestamp, sign })
+      return sendAttempt(url, signed, fetchImpl, attempts, now)
+    },
+    maxAttempts,
+    sleep
+  )
 }

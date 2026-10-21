@@ -48,6 +48,9 @@ jobs:
       FEISHU_ENABLED: ${{ vars.FEISHU_ENABLED }}
       FEISHU_MODE: ${{ vars.FEISHU_MODE || 'changes' }}
       FEISHU_DAILY_DIGEST: ${{ vars.FEISHU_DAILY_DIGEST }}
+      FEISHU_TRANSPORT: ${{ vars.FEISHU_TRANSPORT || 'webhook' }}
+      FEISHU_APP_ID: ${{ vars.FEISHU_APP_ID }}
+      FEISHU_RECEIVE_ID_TYPE: ${{ vars.FEISHU_RECEIVE_ID_TYPE || 'open_id' }}
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
       RESEND_UNKNOWN: ${{ github.event_name == 'workflow_dispatch' && inputs.resend_unknown || false }}
       SOURCE_RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
@@ -69,6 +72,8 @@ jobs:
         env:
           FEISHU_OUTPUT_DIR: ${{ runner.temp }}/feishu
           GITHUB_TOKEN: ${{ github.token }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_RECEIVE_ID: ${{ secrets.FEISHU_RECEIVE_ID }}
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           FEISHU_SIGNING_SECRET: ${{ secrets.FEISHU_SIGNING_SECRET }}
           FEISHU_CI_WEBHOOK_URL: ${{ secrets.FEISHU_CI_WEBHOOK_URL }}
@@ -97,6 +102,8 @@ jobs:
           CLAIM_ARTIFACT_ID: ${{ steps.claim.outputs.artifact-id }}
           FEISHU_OUTPUT_DIR: ${{ runner.temp }}/feishu
           GITHUB_TOKEN: ${{ github.token }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_RECEIVE_ID: ${{ secrets.FEISHU_RECEIVE_ID }}
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           FEISHU_SIGNING_SECRET: ${{ secrets.FEISHU_SIGNING_SECRET }}
           FEISHU_CI_WEBHOOK_URL: ${{ secrets.FEISHU_CI_WEBHOOK_URL }}
