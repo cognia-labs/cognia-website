@@ -109,3 +109,28 @@ test("reruns and destination changes have distinct stable delivery keys", () => 
   )
   assert.notEqual(key, stateKey(source, "https://example.com/other"))
 })
+
+test("app-bot delivery binds receipts to the app and recipient without credentials", () => {
+  const env = {
+    FEISHU_TRANSPORT: "app",
+    FEISHU_APP_ID: "cli_test",
+    FEISHU_APP_SECRET: "private-app-secret",
+    FEISHU_RECEIVE_ID_TYPE: "open_id",
+    FEISHU_RECEIVE_ID: "ou_owner",
+  }
+  const destination = selectDestination("ci", env)
+  assert.equal(destination.kind, "app")
+  assert.equal(destination.appId, env.FEISHU_APP_ID)
+  assert.equal(destination.receiveId, "ou_owner")
+  assert.ok(!destination.identity.includes(env.FEISHU_APP_SECRET))
+  assert.equal(
+    destination.identity,
+    selectDestination("ci", { ...env, FEISHU_APP_SECRET: "rotated" }).identity
+  )
+  assert.notEqual(
+    destination.identity,
+    selectDestination("ci", { ...env, FEISHU_RECEIVE_ID: "ou_other" }).identity
+  )
+  assert.throws(() => selectDestination("ci", { ...env, FEISHU_APP_SECRET: "" }), /app/)
+  assert.throws(() => selectDestination("ci", { ...env, FEISHU_RECEIVE_ID_TYPE: "other" }), /app/)
+})

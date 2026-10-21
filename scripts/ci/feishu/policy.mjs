@@ -97,6 +97,29 @@ export function decide(source, { mode = "changes", previous, previousAccepted = 
 }
 
 export function selectDestination(route, env) {
+  if (env.FEISHU_TRANSPORT === "app") {
+    const appId = env.FEISHU_APP_ID ?? ""
+    const appSecret = env.FEISHU_APP_SECRET ?? ""
+    const receiveIdType = env.FEISHU_RECEIVE_ID_TYPE || "open_id"
+    const receiveId = env.FEISHU_RECEIVE_ID ?? ""
+    if (
+      !/^cli_[A-Za-z0-9]+$/.test(appId) ||
+      (!appSecret.trim() && env.DRY_RUN !== "true") ||
+      !["open_id", "user_id", "chat_id"].includes(receiveIdType) ||
+      !/^[A-Za-z0-9_-]{1,128}$/.test(receiveId)
+    )
+      throw new Error("invalid-app-bot-configuration")
+    return {
+      kind: "app",
+      appId,
+      appSecret,
+      receiveIdType,
+      receiveId,
+      identity: `feishu-app:${appId}:${receiveIdType}:${receiveId}`,
+    }
+  }
+  if (env.FEISHU_TRANSPORT && env.FEISHU_TRANSPORT !== "webhook")
+    throw new Error("invalid-notification-transport")
   const prefix = `FEISHU_${route.toUpperCase()}`
   const override = env[`${prefix}_WEBHOOK_URL`] || env[`${prefix}_SIGNING_SECRET`]
   const url = override ? env[`${prefix}_WEBHOOK_URL`] : env.FEISHU_WEBHOOK_URL

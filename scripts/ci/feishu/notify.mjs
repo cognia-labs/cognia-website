@@ -13,7 +13,7 @@ import {
   workflowFile,
 } from "./policy.mjs"
 import { getCurrentClaim, inspectDelivery, receiptName } from "./ledger.mjs"
-import { renderCard, sendWebhook } from "./transport.mjs"
+import { renderCard, sendNotification } from "./transport.mjs"
 import { summarizeJUnit } from "../report/junit.mjs"
 import { summarizePlaywright } from "../report/playwright.mjs"
 import { renderPreview } from "./preview.mjs"
@@ -472,7 +472,7 @@ export async function prepare({ env = process.env, client, now = Date.now } = {}
           client,
           source,
           past.previousRuns,
-          destination.url,
+          destination.identity ?? destination.url,
           repository,
           now
         )
@@ -493,7 +493,7 @@ export async function prepare({ env = process.env, client, now = Date.now } = {}
   save(dir, "preview.json", card)
   writeFileSync(resolve(dir, "preview.html"), renderPreview(card), { mode: 0o600 })
   const destination = selectDestination(source.route, env)
-  const key = stateKey(source, destination.url)
+  const key = stateKey(source, destination.identity ?? destination.url)
   if (dryRun)
     return finish(env, dir, {
       outcome: "dry-run",
@@ -509,7 +509,8 @@ export async function prepare({ env = process.env, client, now = Date.now } = {}
       prepared: false,
       warnings,
     })
-  if (!destination.url || !destination.secret) throw new Error("missing-webhook-signing-pair")
+  if (destination.kind !== "app" && (!destination.url || !destination.secret))
+    throw new Error("missing-webhook-signing-pair")
   const delivery = await inspectDelivery(client, { key, repository })
   if (delivery.status === "accepted")
     return finish(env, dir, { outcome: "suppressed", reason: "already-accepted", prepared: false })
@@ -556,7 +557,7 @@ export async function prepare({ env = process.env, client, now = Date.now } = {}
 export async function deliver({
   env = process.env,
   client,
-  send = sendWebhook,
+  send = sendNotification,
   now = Date.now,
 } = {}) {
   const { dir, repository } = context(env)
@@ -580,7 +581,7 @@ export async function deliver({
         run_attempt: plan.sourceAttempt,
         route: plan.route,
       },
-      destination.url
+      destination.identity ?? destination.url
     ) !== plan.key
   )
     throw new Error("destination-changed-after-prepare")
@@ -606,7 +607,7 @@ export async function deliver({
     if (current.run_attempt !== plan.sourceAttempt || current.status !== "completed")
       result = { outcome: "superseded", attempts: 0 }
   }
-  result ??= await send({ ...destination, body: plan.card })
+  result ??= await send({ ...destination, body: plan.card, idempotencyKey: plan.key })
   const receipt = {
     version: 1,
     key: plan.key,

@@ -76,10 +76,15 @@ test("notification executes only trusted default-branch code with read-only cred
     }
   }
   assert.doesNotMatch(JSON.stringify(job.env), /secrets\.|github.token/)
+  assert.equal(job.env.FEISHU_TRANSPORT, "${{ vars.FEISHU_TRANSPORT || 'webhook' }}")
+  assert.equal(job.env.FEISHU_APP_ID, "${{ vars.FEISHU_APP_ID }}")
+  assert.equal(job.env.FEISHU_RECEIVE_ID_TYPE, "${{ vars.FEISHU_RECEIVE_ID_TYPE || 'open_id' }}")
   for (const id of ["prepare", "deliver"]) {
     const step = job.steps.find((candidate) => candidate.id === id)
     assert.equal(step.env.FEISHU_OUTPUT_DIR, "${{ runner.temp }}/feishu")
     assert.equal(step.env.GITHUB_TOKEN, "${{ github.token }}")
+    assert.equal(step.env.FEISHU_APP_SECRET, "${{ secrets.FEISHU_APP_SECRET }}")
+    assert.equal(step.env.FEISHU_RECEIVE_ID, "${{ secrets.FEISHU_RECEIVE_ID }}")
     for (const route of ["", "CI_", "OPS_"]) {
       for (const field of ["WEBHOOK_URL", "SIGNING_SECRET"]) {
         const key = `FEISHU_${route}${field}`
