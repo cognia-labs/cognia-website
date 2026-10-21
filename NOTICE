@@ -16,3 +16,8 @@ packages; external provider/agent logos are identification marks.
 
 Product facts and source-contract excerpts are a versioned export, not a live
 product checkout. See content/generated/product-source.json for provenance.
+
+The CI Feishu notifier and bounded report readers under scripts/ci/ were
+adapted from cognia-next commit 9776e5000aee1a6301b17f62a89d643e08737e38.
+They retain the inherited AGPL license. The standalone transport uses Node's
+HMAC implementation and does not import the product notification runtime.

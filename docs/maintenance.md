@@ -12,7 +12,19 @@ Tests still assert the CLI resume command, browser shortcut, workflow depth limi
 
 The manual **Refresh product evidence** workflow checks out the product repository into an explicit temporary directory, exports/refreshes evidence, and pushes a review branch. Its job summary links to the comparison page, where a maintainer can review the diff and open a pull request. It does not require permission for Actions to create or approve PRs; the organization currently keeps that permission disabled. It needs no product dependencies or product build and never deploys automatically.
 
+Run it on `main` to create an update branch, or set `verify_only=true` to validate without creating or pushing one. Verification may run from a feature ref. Both modes run script/unit/type/build checks and retain `product-source.json` and `evidence.json` in a `refreshed-evidence-<run-id>` artifact for 14 days. The summary requires a clean product revision, checks that both files refer to it, and reports whether network values were refreshed or retained. Review partial-network results before accepting an update.
+
+```sh
+gh workflow run refresh-evidence.yml --ref main -f verify_only=true
+# Create a reviewable snapshot update after checking verification results:
+gh workflow run refresh-evidence.yml --ref main -f verify_only=false
+```
+
+The GitHub `GITHUB_TOKEN` provided to the job is sufficient while the product repository remains public. No cross-repository PAT or product build is required. Product source access must be reconfigured if that repository becomes private. Workflow completion can be routed to Feishu through the [notification workflow](notifications.md).
+
 ## Website assets
+
+The README visuals live in `assets/readme/`, separate from shipped website assets. `hero.svg` reuses the website palette and `components/brand-mark.tsx` geometry. The English and Chinese homepage PNGs were captured from the standalone production export at revision `34aafce184cf39694c4886c3b8fe3e14290edd65` on 2026-10-21, at 1440 × 1000. Their embedded application footage uses demo data. To refresh them, build the website, run the desktop homepage cases in `e2e/website.spec.ts`, inspect `desktop-en.png` / `desktop-zh.png` in the Playwright output, and copy the approved captures to `website-en.png` / `website-zh.png` in that directory. Keep commands and operational instructions in Markdown, outside the SVG.
 
 - `pnpm cjk-words`: generates the Chinese typography word list from local copy. Runs before dev/build.
 - `pnpm agent-icons`: regenerates local icon data from the installed `@lobehub/icons-static-svg` package; provenance is recorded in the generated manifest.

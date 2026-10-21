@@ -9,6 +9,10 @@ on:
         description: Run the preserved full-mode changed-file coverage gate
         type: boolean
         default: false
+      notification_run_id:
+        description: Optional completed source run for a secret-free Feishu preview
+        type: string
+        required: false
 permissions:
   contents: read
 concurrency:
@@ -21,6 +25,9 @@ jobs:
     timeout-minutes: 25
     env:
       NEXT_TELEMETRY_DISABLED: "1"
+      WEBSITE_CI_REPORTS: "true"
+      JEST_JUNIT_OUTPUT_DIR: test-results
+      JEST_JUNIT_OUTPUT_NAME: junit-shard-1.xml
       NEXT_PUBLIC_WEB_SITE_URL: https://website.example.org
       NEXT_PUBLIC_DOCS_SITE_URL: https://docs.example.org
     steps:
@@ -34,8 +41,22 @@ jobs:
       - run: pnpm format:check
       - run: pnpm deploy:check
       - run: pnpm check
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: jest-shard-1
+          path: test-results/junit-shard-1.xml
+          retention-days: 7
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
+      - run: pnpm test:e2e --reporter=list,json,html
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: test-results/report.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: playwright-json
+          path: test-results/report.json
+          retention-days: 7
       - name: Check the actual Pages redirect runtime
         run: |
           pnpm preview:pages > /tmp/pages-preview.log 2>&1 &
@@ -101,3 +122,38 @@ jobs:
         run: |
           if [ -z "$COVERAGE_BASE_SHA" ]; then export COVERAGE_BASE_SHA="$(git rev-parse HEAD^)"; fi
           pnpm coverage:changed
+  notification-preview:
+    name: Feishu dry-run preview
+    if: github.event_name == 'workflow_dispatch' && inputs.notification_run_id != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Generate preview without webhook credentials
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FEISHU_OUTPUT_DIR: ${{ runner.temp }}/feishu-preview
+          SOURCE_RUN_ID: ${{ inputs.notification_run_id }}
+          DRY_RUN: "true"
+          FEISHU_MODE: all
+        run: node scripts/ci/feishu/notify.mjs prepare
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: feishu-dry-run-preview
+          path: |
+            ${{ runner.temp }}/feishu-preview/preview.json
+            ${{ runner.temp }}/feishu-preview/preview.html
+            ${{ runner.temp }}/feishu-preview/diagnostic.json
+          if-no-files-found: error
+          retention-days: 14

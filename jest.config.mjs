@@ -18,6 +18,7 @@ export default createJestConfig({
         ),
       }
     : {}),
+  ...(process.env.WEBSITE_CI_REPORTS === "true" ? { reporters: ["default", "jest-junit"] } : {}),
   clearMocks: true,
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   moduleNameMapper: { "^@web/(.*)$": "<rootDir>/$1" },

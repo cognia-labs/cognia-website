@@ -11,7 +11,7 @@
     "typecheck": "pnpm exec tsc --noEmit",
     "evidence": "node scripts/build-evidence.mjs",
     "cjk-words": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-cjk-words.mjs",
-    "test:scripts": "node --test scripts/*.test.mjs",
+    "test:scripts": "node --test scripts/*.test.mjs scripts/ci/feishu/*.test.mjs scripts/ci/report/*.test.mjs",
     "capture": "node scripts/capture-product.mjs",
     "record": "node scripts/record-product.mjs",
     "render": "node scripts/render-video.mjs",
@@ -68,7 +68,9 @@
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.9",
     "@playwright/test": "^1.63.0",
-    "wrangler": "4.141.0"
+    "wrangler": "4.141.0",
+    "jest-junit": "^17.0.0",
+    "yaml": "^2.9.1"
   },
   "description": "The standalone Cognia marketing website.",
   "license": "AGPL-3.0-or-later",
