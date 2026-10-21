@@ -32,6 +32,7 @@ export default defineConfig([
     ".next/**",
     "out/**",
     ".cache/**",
+    ".wrangler/**",
     "coverage/**",
     "playwright-report/**",
     "test-results/**",

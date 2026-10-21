@@ -28,7 +28,9 @@
     "check": "pnpm lint && pnpm typecheck && pnpm test:scripts && pnpm test && pnpm build",
     "deploy:check": "node scripts/check-deployment.mjs",
     "deploy:pages": "pnpm deploy:check && pnpm build && wrangler pages deploy out",
-    "coverage:changed": "node scripts/changed-coverage.mjs"
+    "coverage:changed": "node scripts/changed-coverage.mjs",
+    "postbuild": "node scripts/build-hosting.mjs",
+    "preview:pages": "wrangler pages dev out --port 8788 --ip 127.0.0.1 --compatibility-date 2026-09-25"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

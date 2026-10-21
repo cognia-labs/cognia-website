@@ -3,7 +3,7 @@
  *
  * English is served from the site root — `/`, `/trust`, `/use-cases/research` —
  * so the homepage returns content instead of redirecting. Chinese is prefixed:
- * `/zh`, `/zh/trust`. `/en/*` is never generated; `public/_redirects` 301s it to
+ * `/zh`, `/zh/trust`. `/en/*` is never generated; the generated `out/_redirects` 301s it to
  * the unprefixed form so the default locale has exactly one canonical URL.
  *
  * Every path in this module is the *canonical* path. `hreflang` alternates are

@@ -36,6 +36,12 @@ jobs:
       - run: pnpm check
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      - name: Check the actual Pages redirect runtime
+        run: |
+          pnpm preview:pages > /tmp/pages-preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" || true; cat /tmp/pages-preview.log' EXIT
+          node scripts/check-pages-preview.mjs
       - uses: actions/upload-artifact@v7
         if: always()
         with:
