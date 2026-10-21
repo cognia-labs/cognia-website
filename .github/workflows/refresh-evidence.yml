@@ -1,6 +1,11 @@
 name: Refresh product evidence
 on:
   workflow_dispatch:
+    inputs:
+      verify_only:
+        description: Validate fresh evidence and upload it without creating an update branch
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -8,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   refresh:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || inputs.verify_only == true
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -31,8 +36,22 @@ jobs:
       - run: pnpm evidence:update
         env:
           GITHUB_TOKEN: ${{ github.token }}
-      - run: pnpm test:scripts && pnpm test && pnpm typecheck
+      - run: pnpm test:scripts && pnpm test && pnpm typecheck && pnpm build
+      - name: Preserve refreshed evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: refreshed-evidence-${{ github.run_id }}
+          path: |
+            content/generated/product-source.json
+            content/generated/evidence.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Summarize product evidence
+        env:
+          VERIFY_ONLY: ${{ inputs.verify_only }}
+        run: node scripts/summarize-evidence.mjs
       - name: Create a reviewable snapshot update
+        if: inputs.verify_only != true
         env:
           UPDATE_BRANCH: codex/chore-refresh-evidence-${{ github.run_id }}
         run: |

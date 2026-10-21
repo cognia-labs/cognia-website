@@ -1,15 +1,34 @@
-# Cognia website
+<p align="center">
+  <img src="assets/readme/hero.svg" width="100%" alt="Cognia website — the bilingual product website, built and deployed independently">
+</p>
 
-[![CI](https://github.com/cognia-labs/cognia-website/actions/workflows/ci.yml/badge.svg)](https://github.com/cognia-labs/cognia-website/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+<p align="center">
+  <a href="https://github.com/cognia-labs/cognia-website/actions/workflows/ci.yml"><img src="https://github.com/cognia-labs/cognia-website/actions/workflows/ci.yml/badge.svg" alt="Website CI status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-0C1115" alt="License: AGPL-3.0"></a>
+</p>
 
-The bilingual Cognia product website, maintained and released independently by [Cognia Labs](https://github.com/cognia-labs). Next.js 16, React 19, TypeScript and Tailwind CSS 4 produce a static export in `out/`.
+<p align="center">
+  <strong>English</strong> · <a href="README.zh-CN.md">简体中文</a><br>
+  <a href="#run-locally">Run locally</a> · <a href="docs/deployment.md">Deploy</a> · <a href="CONTRIBUTING.md">Contribute</a> · <a href="https://github.com/cognia-labs/cognia-website/issues">Report an issue</a>
+</p>
 
-This repository owns the marketing site. The application, services, SDKs and documentation remain in [cognia-next](https://github.com/MaxQian888/cognia-next). Website history and original contributor attribution were retained; see [NOTICE](NOTICE).
+**Cognia website** is the English and Chinese product site maintained by [Cognia Labs](https://github.com/cognia-labs). Develop, test and ship it from a single clone. Next.js 16, React 19, TypeScript and Tailwind CSS 4 build to static files in `out/`.
 
-## Quick start
+![The English homepage of the standalone Cognia website, with product navigation, a source-build entry point and recorded application footage](assets/readme/website-en.png)
 
-Requirements: Node 26 and pnpm 11.18.0 (pinned by `packageManager`). With a Node installation that includes Corepack, run `corepack enable && corepack install`; otherwise install that pnpm version directly.
+_Captured from the production static export. The embedded application footage uses demo data._
+
+## One repository, one static artifact
+
+- **Two languages:** English at `/`, Chinese at `/zh`, with typed copy and shared page structure.
+- **Independent development:** committed fonts, media and product snapshots support ordinary development and builds without a product checkout or GitHub API requests.
+- **Portable deployment:** publish `out/` to a static host, use Cloudflare Pages, or build the included Docker image.
+
+This repository owns the marketing website. The application, services, SDKs and documentation remain in [cognia-next](https://github.com/MaxQian888/cognia-next). Original Git history and contributor attribution are retained in [NOTICE](NOTICE).
+
+## Run locally
+
+Use **Node 26** and **pnpm 11.18.0**, pinned in `package.json`. If your Node installation includes Corepack, run `corepack enable && corepack install`; otherwise install that pnpm version directly.
 
 ```sh
 git clone https://github.com/cognia-labs/cognia-website.git
@@ -18,57 +37,61 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open [localhost:3002](http://localhost:3002). English uses unprefixed routes; Chinese uses `/zh`. You do not need a sibling Cognia checkout, a GitHub token or deployment secrets. Development and builds read committed product evidence and media.
+Open [localhost:3002](http://localhost:3002), or [localhost:3002/zh](http://localhost:3002/zh). No tokens or deployment credentials are needed.
+
+To preview the deployment artifact:
 
 ```sh
-pnpm lint
-pnpm typecheck
-pnpm test:scripts
-pnpm test
 pnpm build
 pnpm start
-# One-time browser setup, then production-browser checks:
-pnpm exec playwright install chromium
-pnpm test:e2e
 ```
 
-`pnpm start` / `pnpm preview` serves `out/` at port 3002, including clean URLs, `/en` redirects, 404s and video range requests. Use `PORT=8080 pnpm start` to change the port. Rebuild after changing source or public environment values. `next start` does not serve this static-export application.
+`start` and `preview` serve `out/` on port 3002, including clean URLs, `/en` redirects, 404 responses and video range requests. Use `PORT=8080 pnpm start` for another port. Rebuild after source or public configuration changes; `next start` cannot serve this static export.
 
-## Configuration and deployment
+## Check a change
 
-Copy `.env.example` to `.env.local` only if you need overrides. Public origins are embedded during build:
+| Command             | What it checks                                             |
+| ------------------- | ---------------------------------------------------------- |
+| `pnpm check`        | Lint, types, script tests, unit tests and production build |
+| `pnpm format:check` | Repository formatting                                      |
+| `pnpm test:e2e`     | Desktop and mobile browser flows against the static export |
 
-| Variable                    | Development default     | Deployment value                       |
-| --------------------------- | ----------------------- | -------------------------------------- |
-| `NEXT_PUBLIC_WEB_SITE_URL`  | `http://localhost:3002` | Your public HTTPS website origin       |
-| `NEXT_PUBLIC_DOCS_SITE_URL` | `http://localhost:3001` | Your public HTTPS documentation origin |
-| `CF_PAGES_URL`              | Unset                   | Optional Pages preview-origin fallback |
+Install the browser once with `pnpm exec playwright install chromium`. CI also smoke-tests the Linux deployment container and the actual Pages runtime. Local checks do not collect coverage; the separate full-mode PR policy is documented in [CONTRIBUTING](CONTRIBUTING.md).
 
-`pnpm deploy:check` rejects missing, localhost or malformed production origins. Never store secrets in `NEXT_PUBLIC_*` variables. For deployments use shell/CI environment values; `.env.local` is read by Next.js but not by the standalone deployment validator.
+## Deploy the website
 
-Deploy only the `out/` directory to a static host, or build the included container. The manual GitHub Actions workflow publishes to Cloudflare Pages after repository variables and a scoped API token are configured. See [deployment instructions](docs/deployment.md), including the configuration table and container smoke check. No production domain or cloud credentials are assumed by this repository.
+Public origins are embedded **at build time**. Copy `.env.example` to `.env.local` only when local overrides are needed.
 
-## Repository map
+| Variable                    | Local default                                 |
+| --------------------------- | --------------------------------------------- |
+| `NEXT_PUBLIC_WEB_SITE_URL`  | `http://localhost:3002`                       |
+| `NEXT_PUBLIC_DOCS_SITE_URL` | `http://localhost:3001`                       |
+| `CF_PAGES_URL`              | Unset; optional Pages preview-origin fallback |
 
-| Path                             | Responsibility                                                        |
-| -------------------------------- | --------------------------------------------------------------------- |
-| `app/`                           | Static routes, layout, metadata and styles                            |
-| `components/`, `hooks/`, `lib/`  | Website UI and behavior with co-located tests                         |
-| `content/en.ts`, `content/zh.ts` | Typed English and Chinese copy                                        |
-| `content/generated/`             | Versioned product evidence, source contracts and asset manifests      |
-| `public/`                        | Fonts, icons, social cards, product captures, video and Pages headers |
-| `scripts/`                       | Evidence refresh, asset generation and static preview tooling         |
-| `video/`                         | Optional product-film composition project                             |
-| `e2e/`                           | Standalone browser acceptance checks against the production export    |
-| `.github/`                       | CI, deployment, evidence refresh and contribution templates           |
+For production, export your website and documentation **HTTPS origins** in the shell or CI, then run `pnpm deploy:check`. The validator reads shell values, not `.env.local`. Never place secrets in `NEXT_PUBLIC_*` variables.
 
-`pnpm check` runs lint, typecheck, both test suites and build. `pnpm format:check` checks formatting. CI also runs production browser checks and builds/smoke-tests the deployment container.
+The manual **Deploy website** workflow supports separate `staging` and `production` GitHub Environments. Staging publishes to the Pages `staging` branch; production requires source `main` and publishes to `main`. Use its dry-run to check missing configuration before uploading. Public domains and cloud credentials must be supplied separately.
 
-## Product evidence and media
+**[Cloudflare Pages, Docker and static-host instructions →](docs/deployment.md)**
 
-Normal builds never fetch GitHub or traverse another repository. `content/generated/evidence.json` contains the release/repository/changelog snapshot; `product-source.json` records the product revision, capture time, working-tree state and SHA-256 hashes for the source-contract excerpts used by tests. Existing evidence labels and fallback behavior are retained. Website assertions are checked against that pinned product revision, not an implicit live checkout.
+**[Feishu workflow notifications and secret-free previews →](docs/notifications.md)**
 
-To deliberately refresh product facts, use a separate product clone, then review and commit the generated diff:
+## Find your way around
+
+| Path                             | Start here to…                                   |
+| -------------------------------- | ------------------------------------------------ |
+| `app/`                           | Change routes, metadata or global styles         |
+| `components/`, `hooks/`, `lib/`  | Update UI and behavior with co-located tests     |
+| `content/en.ts`, `content/zh.ts` | Edit both language versions                      |
+| `content/generated/`             | Review pinned product facts and source contracts |
+| `public/`, `video/`              | Maintain shipped assets or author product films  |
+| `scripts/`, `e2e/`, `.github/`   | Work on tooling, acceptance checks or automation |
+
+## Keep product claims traceable
+
+The site reads versioned evidence, not an implicit live product checkout. `product-source.json` records the product revision, capture time, working-tree state and source hashes; `evidence.json` holds repository and release facts.
+
+To intentionally refresh them, select a separate product clone and review the generated diff:
 
 ```sh
 pnpm product:export --source-root /absolute/path/to/cognia-next
@@ -76,20 +99,12 @@ pnpm evidence:update
 pnpm check
 ```
 
-`evidence:update` makes bounded GitHub API requests; optional `GITHUB_TOKEN`/`GH_TOKEN` raises the rate limit. On failure it retains prior network values and records errors. The manual refresh workflow creates a reviewable update branch; it does not publish changes automatically. See [maintenance and provenance](docs/maintenance.md) for snapshots, screenshots, icons and optional film rendering.
+Only the explicit refresh uses the GitHub API; optional `GITHUB_TOKEN` / `GH_TOKEN` raises its rate limit. Failed requests retain previous network values and record errors. The refresh workflow creates a review branch, with no automatic deployment; `verify_only=true` validates and uploads evidence without creating a branch.
 
-## Contributing and license
+**[Snapshots, screenshot capture and film maintenance →](docs/maintenance.md)**
 
-Read [CONTRIBUTING](CONTRIBUTING.md), [Code of Conduct](CODE_OF_CONDUCT.md), [Security](SECURITY.md) and [Support](SUPPORT.md). The inherited [AGPL license](LICENSE) and third-party rights remain applicable.
+## Make a contribution
 
-## 中文说明
+Start with the [contribution guide](CONTRIBUTING.md) and [design system](DESIGN.md). Use [website issues](https://github.com/cognia-labs/cognia-website/issues) for site bugs and [product issues](https://github.com/MaxQian888/cognia-next/issues) for application behavior.
 
-这是 Cognia 官网的独立仓库，可独立安装、开发、测试、构建和部署。产品应用、服务、SDK 和 Fumadocs 文档仍在 [cognia-next](https://github.com/MaxQian888/cognia-next)。原官网的 Git 历史和贡献署名已保留。
-
-使用 Node 26、pnpm 11.18.0，克隆后运行 `pnpm install --frozen-lockfile` 和 `pnpm dev`，访问 `http://localhost:3002`。英文路由不带语言前缀，中文为 `/zh`。运行 `pnpm build && pnpm start` 可预览真正的静态部署产物；构建不依赖主仓库或 GitHub 网络请求。
-
-部署前明确配置官网与文档的 HTTPS 地址，再运行 `pnpm deploy:check`。静态产物是 `out/`；Cloudflare Pages、GitHub Actions 与 Docker 的完整步骤见[部署说明](docs/deployment.md)。本仓库不预设已经存在的生产域名或部署凭据。产品信息通过可追溯的版本快照维护，只有主动刷新时才需要读取单独的产品克隆；详见[维护说明](docs/maintenance.md)。
-
-Full-mode PR CI preserves the inherited 90% lines, branches, functions and statements thresholds for each changed authored file in `components/`, `hooks/` and `lib/` (vendored `components/ui/` excluded). Shared dependency/test/tooling changes select full mode; the `ci:full` PR label or the CI workflow's `full_validation` input also enables it. Ordinary local checks do not collect coverage. To explicitly run this check locally, set `COVERAGE_BASE_SHA` to a full Git base SHA and `COVERAGE_FULL=true`, then run `pnpm coverage:changed`.
-
-Pages redirects are generated by `postbuild` from the canonical origin in `out/index.html`, including `.env.local` or Pages preview values already resolved by Next.js. Pages targets always use a fixed HTTPS origin; in development that host-specific file promotes the built canonical origin to HTTPS. Doubled or encoded slashes cannot redirect to another host. Use `pnpm start` for local HTTP routing, or build with your public HTTPS origin before using the Pages-specific preview. Serve the complete output of `pnpm build`, including `out/_redirects`; do not copy an older redirects file over it. `pnpm preview:pages` runs the actual Pages runtime at port 8788; `node scripts/check-pages-preview.mjs` checks its routes and redirect safety while it is running.
+[Code of Conduct](CODE_OF_CONDUCT.md) · [Security](SECURITY.md) · [Support](SUPPORT.md) · [AGPL license](LICENSE)

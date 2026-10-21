@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280" role="img" aria-labelledby="title desc">
+  <title id="title">Cognia website</title>
+  <desc id="desc">The bilingual Cognia product website. English and Chinese content build into one independently deployable static export.</desc>
+  <rect width="1200" height="280" rx="12" fill="#0C1115"/>
+  <g id="identity" fill="#F3F1EC" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    <g id="brand-mark" transform="translate(60 40) scale(1.5)" fill="none" stroke="#F3F1EC" stroke-linecap="round">
+      <rect x="3.25" y="3.25" width="17.5" height="17.5" rx="2.5" stroke-width="1.4" opacity="0.55"/>
+      <path d="M12 1.5v2.4M12 20.1v2.4M1.5 12h2.4M20.1 12h2.4" stroke-width="1.4"/>
+      <path d="M6.9 9.1h3.4a1.6 1.6 0 0 1 1.6 1.6v3.6" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="11.9" cy="15.9" r="1.75" fill="#35CEDD" stroke="none"/>
+    </g>
+    <text x="112" y="66" font-size="22" fill="#8E959B">Cognia Labs</text>
+    <text x="60" y="152" font-size="76" font-weight="500" letter-spacing="-2">Cognia website</text>
+    <text x="62" y="198" font-size="28" fill="#8E959B">The product story, in two languages.</text>
+  </g>
+  <g id="static-export" font-family="ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="24" fill="#F3F1EC">
+    <path d="M850 89h54v64h44M850 153h54" fill="none" stroke="#8E959B" stroke-width="1.5"/>
+    <text x="774" y="96">/</text>
+    <text x="774" y="160">/zh</text>
+    <rect x="948" y="124" width="184" height="58" rx="8" fill="#151B20" stroke="#2A333A"/>
+    <circle cx="973" cy="153" r="4" fill="#35CEDD"/>
+    <text x="992" y="161">out/</text>
+  </g>
+  <path d="M60 230h1080" stroke="#2A333A"/>
+  <text x="62" y="260" font-family="ui-monospace, 'SFMono-Regular', Menlo, monospace" font-size="18" fill="#8E959B">LOCAL CONTENT → STATIC BUILD → YOUR HOST</text>
+</svg>
