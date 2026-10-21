@@ -209,7 +209,7 @@ export function renderCard({
         header: {
           title: { tag: "plain_text", content: model.title },
           template,
-          padding: "12px 16px",
+          padding: "12px 16px 12px 16px",
           ...(model.subtitle ? { subtitle: { tag: "plain_text", content: model.subtitle } } : {}),
           ...(model.tags.length
             ? {

@@ -151,6 +151,19 @@ test("bounds JSON bytes even with escaped text and large action URLs", () => {
   assert.equal(buttons(card).length, 3)
 })
 
+test("renders only single-value or four-value padding accepted by the Feishu card API", () => {
+  const card = renderCard({
+    title: "Deployment complete",
+    metrics: [{ label: "Passed jobs", value: 1 }],
+    actions: [{ label: "Open run", url: "https://github.com/acme/cognia/actions/runs/42" }],
+  })
+  for (const node of nodes(card).filter((node) => node.padding !== undefined)) {
+    const values = node.padding.split(" ")
+    assert.ok([1, 4].includes(values.length), `Feishu rejects padding: ${node.padding}`)
+    assert.ok(values.every((value) => /^(?:0|[1-9][0-9]?)px$/.test(value)))
+  }
+})
+
 test("renders Card2 hierarchy with metrics, section actions and one primary action", () => {
   const card = renderCard({
     title: "Build failed",
