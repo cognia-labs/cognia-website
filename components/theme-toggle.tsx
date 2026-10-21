@@ -1,7 +1,7 @@
 "use client"
 
 import { useTheme } from "next-themes"
-import { useReducedMotion } from "motion/react"
+import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 import { Icon, type IconName } from "@web/components/icon"
 import { AnimatedThemeToggler } from "@web/components/ui/animated-theme-toggler"
 import type { NavCopy } from "@web/content/types"

@@ -90,8 +90,13 @@ test("a failed selected recapture removes its stale manifest cell without touchi
   })
 })
 
-const REPO = join(dirname(fileURLToPath(import.meta.url)), "..", "..")
-const productSource = (path) => readFileSync(join(REPO, path), "utf8")
+const snapshot = JSON.parse(
+  readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), "../content/generated/product-source.json"),
+    "utf8"
+  )
+)
+const productSource = (path) => snapshot.sourceFiles[path]
 
 test("the matrix is hero, workbench and desktop, each waiting on the chat surface", () => {
   assert.deepEqual(
@@ -118,7 +123,7 @@ test("the matrix is hero, workbench and desktop, each waiting on the chat surfac
   assert.equal(SECTIONS.find((s) => s.key === "hero").clip, null)
 })
 
-test("every selector the capture waits on still exists in the product", () => {
+test("every selector the capture waits on exists in the pinned product source snapshot", () => {
   // A renamed test id in the app would otherwise surface as a capture that times out.
   assert.match(productSource("components/chat/chat-view.tsx"), /data-slot="chat-surface-stage"/)
   assert.equal(CHAT_SURFACE_SELECTOR, '[data-slot="chat-surface-stage"]')

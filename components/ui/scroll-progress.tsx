@@ -1,6 +1,7 @@
 "use client"
 
-import { motion, useReducedMotion, useScroll, type MotionProps } from "motion/react"
+import { motion, useScroll, type MotionProps } from "motion/react"
+import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 
 import { cn } from "@web/lib/utils"
 

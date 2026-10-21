@@ -1,6 +1,7 @@
 "use client"
 
-import { useInView, useReducedMotion } from "motion/react"
+import { useInView } from "motion/react"
+import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
 import cjkWords from "@web/content/generated/cjk-words.json"
 import { CJK, normalizeTitle } from "@web/lib/cjk-words"

@@ -3,8 +3,8 @@
  * Product screenshot capture (ADR-0092 §8).
  *
  * Drives the real Cognia application with Playwright and writes the
- * *section × theme × locale* matrix into `web/public/product/`, plus the
- * manifest `web/content/generated/product-shots.json` that the site reads.
+ * *section × theme × locale* matrix into `public/product/`, plus the
+ * manifest `content/generated/product-shots.json` that the site reads.
  *
  * Two rules this script exists to enforce:
  *
@@ -21,12 +21,12 @@
  *     missing one.
  *
  * Prerequisites (the script checks and reports, it does not install):
- *   pnpm test:e2e:build                                  # NEXT_PUBLIC_E2E=1 static export into out/
- *   node scripts/e2e/serve-out.mjs --port 4173           # serves that export
+ *   In a separate product checkout: pnpm test:e2e:build                                  # NEXT_PUBLIC_E2E=1 static export into out/
+ *   In that product checkout: node scripts/e2e/serve-out.mjs --port 4173           # serves that export
  *
  * Usage:
- *   node web/scripts/capture-product.mjs --base-url http://localhost:4173
- *   node web/scripts/capture-product.mjs --only hero --locale en --theme dark
+ *   node scripts/capture-product.mjs --base-url http://localhost:4173
+ *   node scripts/capture-product.mjs --only hero --locale en --theme dark
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"

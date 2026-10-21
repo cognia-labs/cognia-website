@@ -1,22 +1,34 @@
 {
-  "name": "web",
+  "name": "@cognia/website",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/build-evidence.mjs && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-cjk-words.mjs",
+    "predev": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-cjk-words.mjs",
     "dev": "next dev -p 3002",
-    "prebuild": "node scripts/build-evidence.mjs && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-cjk-words.mjs",
-    "build": "cross-env NODE_OPTIONS=--max-old-space-size=16384 next build",
-    "start": "next start -p 3002",
-    "typecheck": "tsc --noEmit",
-    "design:audit": "node ../plugins/impeccable/skills/impeccable/scripts/detect.mjs app components hooks lib",
+    "prebuild": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-cjk-words.mjs",
+    "build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 next build --webpack",
+    "start": "node scripts/serve-static.mjs --port 3002",
+    "typecheck": "pnpm exec tsc --noEmit",
     "evidence": "node scripts/build-evidence.mjs",
     "cjk-words": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-cjk-words.mjs",
     "test:scripts": "node --test scripts/*.test.mjs",
     "capture": "node scripts/capture-product.mjs",
     "record": "node scripts/record-product.mjs",
     "render": "node scripts/render-video.mjs",
-    "agent-icons": "node scripts/sync-agent-icons.mjs"
+    "agent-icons": "node scripts/sync-agent-icons.mjs",
+    "preview": "node scripts/serve-static.mjs --port 3002",
+    "evidence:update": "node scripts/build-evidence.mjs",
+    "product:export": "node scripts/export-product-source.mjs",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
+    "test:e2e": "playwright test",
+    "lint": "eslint . --max-warnings=0",
+    "format:check": "prettier --check .",
+    "format": "prettier --write .",
+    "check": "pnpm lint && pnpm typecheck && pnpm test:scripts && pnpm test && pnpm build",
+    "deploy:check": "node scripts/check-deployment.mjs",
+    "deploy:pages": "pnpm deploy:check && pnpm build && wrangler pages deploy out",
+    "coverage:changed": "node scripts/changed-coverage.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -39,6 +51,35 @@
     "@types/react-dom": "^19.3.0",
     "tailwindcss": "^4.3.3",
     "tw-animate-css": "^1.4.0",
-    "typescript": "^6.0.3"
-  }
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "cross-env": "^10.1.0",
+    "@types/jest": "^30.0.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/user-event": "^14.6.1",
+    "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.3.6",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.9",
+    "@playwright/test": "^1.63.0",
+    "wrangler": "4.141.0"
+  },
+  "description": "The standalone Cognia marketing website.",
+  "license": "AGPL-3.0-or-later",
+  "packageManager": "pnpm@11.18.0",
+  "engines": {
+    "node": ">=26.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cognia-labs/cognia-website.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cognia-labs/cognia-website/issues"
+  },
+  "homepage": "https://github.com/cognia-labs/cognia-website"
 }

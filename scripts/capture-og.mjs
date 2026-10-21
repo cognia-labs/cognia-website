@@ -3,7 +3,7 @@
  * Share-image capture (ADR-0092, plan §7).
  *
  * Photographs `/og-template` once per published route per locale and writes the
- * results to `web/public/og/`. A static export has no `ImageResponse` runtime,
+ * results to `public/og/`. A static export has no `ImageResponse` runtime,
  * so these are produced ahead of time — and rendering them from the site's own
  * tokens and typeface is what stops them drifting from the pages they represent.
  *
@@ -11,9 +11,9 @@
  * website's own static export, no product application and no seeded data.
  *
  * Usage:
- *   pnpm --filter web build
- *   pnpm dlx serve web/out -l 4174
- *   node web/scripts/capture-og.mjs --base-url http://localhost:4174
+ *   pnpm build
+ *   PORT=4174 pnpm start
+ *   node scripts/capture-og.mjs --base-url http://localhost:4174
  */
 
 import { mkdirSync, writeFileSync } from "node:fs"

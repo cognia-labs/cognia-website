@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
  * Writes `content/generated/cjk-words.json`: the word boundaries of every
- * Chinese copy title, from Node's `Intl.Segmenter` (see `web/lib/cjk-words.ts`
+ * Chinese copy title, from Node's `Intl.Segmenter` (see `lib/cjk-words.ts`
  * for why this is decided at build time). I/O only; the judgement lives in
  * the unit-tested module, and `lib/cjk-words.test.ts` fails when the committed
  * file no longer matches the copy.
  *
- *   node web/scripts/build-cjk-words.mjs
+ *   node scripts/build-cjk-words.mjs
  */
 
 import { writeFileSync } from "node:fs"

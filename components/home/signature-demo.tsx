@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, type ReactNode } from "react"
-import { useReducedMotion } from "motion/react"
+import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 import { Icon, type IconName } from "@web/components/icon"
 import { TaskArtifact } from "@web/components/product/task-artifact"
 import { Section, SectionHeading } from "@web/components/section"

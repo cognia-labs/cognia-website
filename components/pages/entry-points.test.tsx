@@ -1,6 +1,5 @@
 import { act, render, screen, within } from "@testing-library/react"
-import { readFileSync, readdirSync } from "node:fs"
-import { join } from "node:path"
+import productSource from "@web/content/generated/product-source.json"
 import type { ReactNode } from "react"
 import { DEMO_TASK } from "@web/content/demo-task"
 import { en } from "@web/content/en"
@@ -121,20 +120,18 @@ describe("EntryPoints", () => {
     expect(screen.getByText(en.surfaces.entryPoints.sequenceLabel)).toHaveClass("sr-only")
   })
 
-  it("lists one chat platform per adapter directory in the repository", () => {
+  it("lists one chat platform per adapter directory in the product snapshot", () => {
     // The channel strip is copy, so it can drift from the code. Pin it to the
     // adapter directories: a platform added or removed there is a failure here.
-    const adapters = readdirSync(join(__dirname, "../../../lib/connectors/adapters"), {
-      withFileTypes: true,
-    }).filter((entry) => entry.isDirectory() && !entry.name.startsWith("_"))
+    const adapters = productSource.connectorAdapters
     expect(en.surfaces.entryPoints.channels).toHaveLength(adapters.length)
     expect(zh.surfaces.entryPoints.channels).toHaveLength(adapters.length)
   })
 
   it("quotes the resume command and the capture shortcut from their defining modules", () => {
-    const args = readFileSync(join(__dirname, "../../../cli/src/cli/args.ts"), "utf8")
+    const args = productSource.sourceFiles["cli/src/cli/args.ts"]
     expect(args).toContain('"continue"')
-    const wxt = readFileSync(join(__dirname, "../../../browser-extension/wxt.config.ts"), "utf8")
+    const wxt = productSource.sourceFiles["browser-extension/wxt.config.ts"]
     expect(wxt).toContain(CAPTURE_SHORTCUT)
   })
 

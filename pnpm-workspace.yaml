@@ -1,0 +1,20 @@
+packages:
+  - .
+
+overrides:
+  "react": "19.3.0"
+  "react-dom": "19.3.0"
+  "@types/react": "19.3.0"
+  "@types/react-dom": "19.3.0"
+  "motion": "13.4.4"
+  "@sinonjs/fake-timers": "15.4.0"
+
+patchedDependencies:
+  "@sinonjs/fake-timers@15.4.0": patches/@sinonjs__fake-timers@15.4.0.patch
+
+allowBuilds:
+  "@parcel/watcher": true
+  sharp: true
+  workerd: true
+  esbuild: true
+  unrs-resolver: true

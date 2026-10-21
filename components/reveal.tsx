@@ -1,6 +1,7 @@
 "use client"
 
-import { motion, useReducedMotion } from "motion/react"
+import { motion } from "motion/react"
+import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 import type { ReactNode } from "react"
 import { EASE_ENTRANCE } from "@web/lib/motion"
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useReducedMotion } from "motion/react"
+import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 
 import {
   WORKBENCH_COMPLETE,

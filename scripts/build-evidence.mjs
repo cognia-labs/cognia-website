@@ -3,12 +3,12 @@
  * Build-time evidence collection (ADR-0092 §6).
  *
  * A static export has no request-time runtime, so everything the site claims
- * about releases, the changelog and the repository is materialised here, before
- * `next build`, and stamped with the moment it was read.
+ * about releases, the changelog and the repository is materialised here, through
+ * `pnpm evidence:update`, and stamped with the moment it was read.
  *
  * This script is deliberately I/O only — fetch, filesystem, git. Every decision
  * that could be wrong (is there a release? which asset is the macOS one? how do
- * entries group?) lives in `web/lib/evidence.ts` as pure, unit-tested
+ * entries group?) lives in `lib/evidence.ts` as pure, unit-tested
  * TypeScript. A script that cannot be run under Jest should not be where the
  * judgement lives.
  *
@@ -18,18 +18,14 @@
  * or failing the build. A network outage must not be able to publish the claim
  * that a project has no contributors.
  *
- *   node web/scripts/build-evidence.mjs
+ *   pnpm evidence:update
  */
 
-import { execFileSync } from "node:child_process"
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { collectInventory } from "./build-inventory.mjs"
-
 const WEB_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
-const REPO_ROOT = join(WEB_ROOT, "..")
 const OUT_DIR = join(WEB_ROOT, "content", "generated")
 const OUT_FILE = join(OUT_DIR, "evidence.json")
 
@@ -52,8 +48,8 @@ function headers() {
  * How long one GitHub call may take before it is treated as unreachable.
  *
  * `fetch` has no default deadline. On a machine without a route to
- * api.github.com the connection attempt can hang for minutes, and because this
- * script runs as `predev`, that hang was `pnpm web:dev` never starting. The
+ * api.github.com the connection attempt can hang for minutes, and when this
+ * script was coupled to `predev`, that could prevent development from starting. The
  * failure policy below already knows what to do with an unreachable source —
  * keep the previous snapshot — so a bounded wait just gets it there sooner.
  */
@@ -92,37 +88,6 @@ export function parseChangeset(id, raw) {
   const summary = body.trim()
   if (!summary) return null
   return { id, bump: bumpMatch ? bumpMatch[1] : "patch", summary }
-}
-
-/**
- * The date a changeset entered the repository — the closest thing to "when did
- * this change land" that does not require a release to exist.
- */
-function firstCommitDate(relativePath) {
-  try {
-    const out = execFileSync(
-      "git",
-      ["log", "--diff-filter=A", "--follow", "--format=%aI", "-1", "--", relativePath],
-      { cwd: REPO_ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
-    ).trim()
-    return out || null
-  } catch {
-    return null
-  }
-}
-
-function collectChangesets() {
-  const dir = join(REPO_ROOT, ".changeset")
-  if (!existsSync(dir)) return []
-  return readdirSync(dir)
-    .filter((name) => name.endsWith(".md") && name.toLowerCase() !== "readme.md")
-    .map((name) => {
-      const id = name.replace(/\.md$/, "")
-      const parsed = parseChangeset(id, readFileSync(join(dir, name), "utf8"))
-      if (!parsed) return null
-      return { ...parsed, date: firstCommitDate(join(".changeset", name)) }
-    })
-    .filter(Boolean)
 }
 
 async function collectRepo() {
@@ -175,11 +140,14 @@ async function main() {
   const errors = []
   const readAt = new Date().toISOString()
 
-  // The changeset feed is local: it never fails for network reasons, so it is
-  // always current even when GitHub is unreachable.
-  const changesets = collectChangesets()
-  // So is the inventory: directory listings and file counts over the checkout.
-  const inventory = collectInventory(REPO_ROOT)
+  // Builds use committed facts; only an explicit refresh reads the product checkout.
+  const snapshot = JSON.parse(readFileSync(join(OUT_DIR, "product-source.json"), "utf8"))
+  const { changesets, inventory } = snapshot
+  if (snapshot.schemaVersion !== 1 || !snapshot.provenance?.commit) {
+    throw new Error(
+      "Invalid product snapshot; run pnpm product:export --source-root /path/to/cognia-next"
+    )
+  }
 
   let repo = previous?.repo ?? { stars: null, license: null, description: null }
   let contributors = previous?.contributors ?? null
@@ -213,6 +181,7 @@ async function main() {
     releases,
     changesets,
     inventory,
+    productSource: snapshot.provenance,
   }
 
   mkdirSync(OUT_DIR, { recursive: true })

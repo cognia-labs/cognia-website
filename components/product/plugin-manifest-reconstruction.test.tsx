@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react"
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
+import productSource from "@web/content/generated/product-source.json"
 import { DEMO_TASK } from "@web/content/demo-task"
 import { en } from "@web/content/en"
 import { zh } from "@web/content/zh"
@@ -28,13 +27,15 @@ describe("PluginManifestReconstruction", () => {
     expect(screen.getByText(en.reconstruction.plugin.deniedNote)).toBeInTheDocument()
   })
 
-  it("is read from a manifest that ships in the repository, not invented", () => {
+  it("is read from a manifest that ships in the pinned product snapshot", () => {
     // The page claims the declaration can be read before installing. If the
     // fixture drifts from the real manifest, the reconstruction becomes a
     // mock-up of a plugin that does not exist.
-    const manifest = JSON.parse(
-      readFileSync(join(__dirname, "../../../plugins/web-tools/plugin.json"), "utf8")
-    ) as { id: string; capabilities: string[]; permissions: string[] }
+    const manifest = JSON.parse(productSource.sourceFiles["plugins/web-tools/plugin.json"]) as {
+      id: string
+      capabilities: string[]
+      permissions: string[]
+    }
     expect(manifest.id).toBe(DEMO_TASK.plugin.id)
     expect(manifest.capabilities).toEqual(DEMO_TASK.plugin.capabilities)
     expect(manifest.permissions).toEqual(DEMO_TASK.plugin.permissions)

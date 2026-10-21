@@ -4,7 +4,7 @@
  *
  * Plays the signature task in a running E2E build of the real application and
  * records it, one locale at a time, into the HyperFrames project's source
- * folder: `web/video/recordings/<locale>.mp4` plus `<locale>.timing.json`,
+ * folder: `video/recordings/<locale>.mp4` plus `<locale>.timing.json`,
  * which says when each stage and each story beat began so the film's camera
  * and callouts land on the real moments.
  *
@@ -16,7 +16,7 @@
  * arrived, which is exactly what the screen showed.
  *
  * Recordings are intermediates (git-ignored). The committed outputs are the
- * rendered films under `web/public/video/`, produced by `render-video.mjs`.
+ * rendered films under `public/video/`, produced by `render-video.mjs`.
  *
  * Prerequisites (checked and reported, never installed):
  *   - a product build with NEXT_PUBLIC_E2E=1 serving at --base-url
@@ -25,8 +25,8 @@
  *   - ffmpeg on PATH
  *
  * Usage:
- *   node web/scripts/record-product.mjs --base-url http://localhost:3000
- *   node web/scripts/record-product.mjs --locale zh
+ *   node scripts/record-product.mjs --base-url http://localhost:3000
+ *   node scripts/record-product.mjs --locale zh
  */
 
 import { spawnSync } from "node:child_process"
@@ -75,7 +75,7 @@ export function finalHold(elapsedMs, minHoldMs, targetMs = TARGET_DURATION_MS) {
 
 /**
  * The script the film composition loads for its per-locale beat times
- * (`web/video/recordings/timing.js`). Plain JS assigning a global, because a
+ * (`video/recordings/timing.js`). Plain JS assigning a global, because a
  * composition may not fetch at render time.
  */
 export function timingScript(timings) {

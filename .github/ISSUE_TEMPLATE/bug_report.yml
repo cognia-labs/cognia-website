@@ -1,0 +1,22 @@
+name: Website bug
+description: Report a website behavior or content issue.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Affected URL and locale
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps and expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment and evidence
+      description: Browser, OS, revision, Node/pnpm versions, screenshots or logs. Remove secrets and personal data.

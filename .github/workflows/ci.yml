@@ -1,0 +1,97 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      full_validation:
+        description: Run the preserved full-mode changed-file coverage gate
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  website:
+    name: Standalone website
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_WEB_SITE_URL: https://website.example.org
+      NEXT_PUBLIC_DOCS_SITE_URL: https://docs.example.org
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm deploy:check
+      - run: pnpm check
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: browser-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+      - uses: actions/upload-artifact@v7
+        with:
+          name: static-website
+          path: out/
+          retention-days: 7
+  container:
+    name: Deployment container
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build standalone deployment image
+        run: >-
+          docker build
+          --build-arg NEXT_PUBLIC_WEB_SITE_URL=https://website.example.org
+          --build-arg NEXT_PUBLIC_DOCS_SITE_URL=https://docs.example.org
+          -t cognia-website:ci .
+      - name: Smoke-test static routes, redirect and 404
+        run: |
+          docker run -d --name website -p 3002:3002 cognia-website:ci
+          trap 'docker logs website; docker rm -f website' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3002/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3002/zh/product >/dev/null
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3002/en/product)" = 301
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3002/missing-page)" = 404
+  changed-coverage:
+    name: Full-mode changed-file coverage
+    if: github.event_name == 'pull_request' || inputs.full_validation == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check the original 90 percent changed-file thresholds in full mode
+        env:
+          COVERAGE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          COVERAGE_FULL: ${{ inputs.full_validation == true || contains(github.event.pull_request.labels.*.name, 'ci:full') }}
+        run: |
+          if [ -z "$COVERAGE_BASE_SHA" ]; then export COVERAGE_BASE_SHA="$(git rev-parse HEAD^)"; fi
+          pnpm coverage:changed

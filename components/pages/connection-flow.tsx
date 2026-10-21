@@ -1,7 +1,7 @@
 "use client"
 
 import { forwardRef, useRef } from "react"
-import { useReducedMotion } from "motion/react"
+import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 
 import { BrandMark } from "@web/components/brand-mark"
 import { Icon, type IconName } from "@web/components/icon"

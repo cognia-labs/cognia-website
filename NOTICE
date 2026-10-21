@@ -1,0 +1,18 @@
+Cognia website
+
+Extracted on 2026-10-21 from the web/ directory of:
+https://github.com/MaxQian888/cognia-next
+Source commit: 0d138eefc6f1d3535ffd57db71a898e540e3686f
+Extracted history tip: dcb5b8dbc700033b4d71c62436333a47aac35cb3
+
+The original web/ Git history and contributor attribution have been retained
+through git subtree split. Current web/next.config.ts and web/package.json
+working-tree changes were carried into this extraction.
+
+The GNU Affero General Public License in LICENSE is inherited from Cognia.
+Third-party fonts, icons, logos and other assets retain their own licenses and
+trademark rights. Dependency notices are distributed by their respective
+packages; external provider/agent logos are identification marks.
+
+Product facts and source-contract excerpts are a versioned export, not a live
+product checkout. See content/generated/product-source.json for provenance.

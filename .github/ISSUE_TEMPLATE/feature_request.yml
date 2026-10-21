@@ -1,0 +1,17 @@
+name: Website improvement
+description: Propose a website or content improvement.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and who it affects
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed result and alternatives
+    validations:
+      required: true

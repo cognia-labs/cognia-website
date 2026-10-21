@@ -9,7 +9,7 @@
  * failing check, the plan, the diff, the re-run, the notes and the halt on the
  * push.
  *
- * Identities come from `DEMO`, which `web/content/demo-task.test.ts` pins to
+ * Identities come from `DEMO`, which `content/demo-task.test.ts` pins to
  * `DEMO_TASK`, so a reconstruction, a screenshot and a film frame describe one
  * task. The prose is per locale and lives here rather than in `content/*.ts`
  * because this file is plain Node: the conversation text is what the agent

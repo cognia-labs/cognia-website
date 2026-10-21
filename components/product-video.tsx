@@ -1,6 +1,7 @@
 "use client"
 
-import { useInView, useReducedMotion } from "motion/react"
+import { useInView } from "motion/react"
+import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 import { useEffect, useRef, useState, type CSSProperties } from "react"
 
 import { Icon } from "@web/components/icon"

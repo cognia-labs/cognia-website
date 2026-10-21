@@ -1,6 +1,6 @@
 "use client"
 
-import { useReducedMotion } from "motion/react"
+import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 
 import { AnimatedList } from "@web/components/ui/animated-list"
 import { DEMO_TASK, type TestLineState } from "@web/content/demo-task"

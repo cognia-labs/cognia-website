@@ -1,7 +1,7 @@
 "use client"
 
 import type { ReactNode } from "react"
-import { useReducedMotion } from "motion/react"
+import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 
 import { Lens } from "@web/components/ui/lens"
 import { useFinePointer } from "@web/hooks/use-fine-pointer"

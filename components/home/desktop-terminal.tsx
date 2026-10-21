@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useReducedMotion } from "motion/react"
+import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 
 import { Terminal } from "@web/components/ui/terminal"
 import { DEMO_TASK, type TestLineState } from "@web/content/demo-task"

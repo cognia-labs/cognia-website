@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Cognia product issues
+    url: https://github.com/MaxQian888/cognia-next/issues
+    about: Application, service and SDK issues belong in the product repository.
+  - name: Private security report
+    url: https://github.com/cognia-labs/cognia-website/security/advisories/new
+    about: Do not disclose vulnerabilities or credentials in public issues.

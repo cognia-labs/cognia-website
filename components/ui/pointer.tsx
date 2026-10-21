@@ -1,13 +1,8 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import {
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  type HTMLMotionProps,
-} from "motion/react"
+import { AnimatePresence, motion, useMotionValue, type HTMLMotionProps } from "motion/react"
+import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 
 import { cn } from "@web/lib/utils"
 

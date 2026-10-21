@@ -2,7 +2,7 @@
 /**
  * Render the product films (ADR-0092, product footage amendment).
  *
- * Takes the HyperFrames project in `web/video/` — edited from real recordings
+ * Takes the HyperFrames project in `video/` — edited from real recordings
  * of the application (`record-product.mjs`) — renders each film for each
  * locale, and publishes the results the website reads:
  *
@@ -18,19 +18,19 @@
  *     it fits; a film that cannot fit at the ladder's floor fails the run
  *     rather than shipping soft or oversized.
  *  2. **One text for callouts and captions.** The caption track is generated
- *     from `web/video/film-copy.js`, the same file the composition draws its
+ *     from `video/film-copy.js`, the same file the composition draws its
  *     callouts from, timed by the same recorded beats.
  *
  * Filenames carry a content hash so `/video/*` can be cached immutably; the
  * previous files of a re-rendered film are deleted.
  *
  * Prerequisites (checked and reported, never installed):
- *   node web/scripts/record-product.mjs     # recordings/ + timing.js + hero shots
+ *   node scripts/record-product.mjs     # recordings/ + timing.js + hero shots
  *   ffmpeg on PATH; the HyperFrames CLI via `pnpm dlx hyperframes@<pinned>`
  *
  * Usage:
- *   node web/scripts/render-video.mjs
- *   node web/scripts/render-video.mjs --only product-film --locale zh
+ *   node scripts/render-video.mjs
+ *   node scripts/render-video.mjs --only product-film --locale zh
  */
 
 import { spawnSync } from "node:child_process"
@@ -54,7 +54,7 @@ export const VIDEO_PROJECT = join(WEB_ROOT, "video")
 const PUBLIC_DIR = join(WEB_ROOT, "public", "video")
 const MANIFEST = join(WEB_ROOT, "content", "generated", "product-videos.json")
 
-/** The HyperFrames CLI the project is authored against (`web/video/package.json`). */
+/** The HyperFrames CLI the project is authored against (`video/package.json`). */
 export const HYPERFRAMES = "hyperframes@0.8.93"
 
 /**

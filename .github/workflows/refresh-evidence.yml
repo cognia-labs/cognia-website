@@ -1,0 +1,53 @@
+name: Refresh product evidence
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: evidence-refresh
+  cancel-in-progress: false
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Read the product from an explicit checkout
+        uses: actions/checkout@v7
+        with:
+          repository: MaxQian888/cognia-next
+          ref: dev
+          fetch-depth: 0
+          path: .cache/product-source
+          persist-credentials: false
+      - run: pnpm product:export --source-root "$GITHUB_WORKSPACE/.cache/product-source"
+      - run: pnpm evidence:update
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - run: pnpm test:scripts && pnpm test && pnpm typecheck
+      - name: Create a reviewable snapshot update
+        env:
+          UPDATE_BRANCH: codex/chore-refresh-evidence-${{ github.run_id }}
+        run: |
+          if git diff --quiet -- content/generated/product-source.json content/generated/evidence.json; then
+            echo 'No evidence changes'
+            exit 0
+          fi
+          git switch -c "$UPDATE_BRANCH"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add content/generated/product-source.json content/generated/evidence.json
+          git commit -m 'chore(evidence): refresh product snapshot'
+          git push origin "$UPDATE_BRANCH"
+          {
+            echo '## Product evidence update'
+            echo "Review the generated changes: https://github.com/$GITHUB_REPOSITORY/compare/main...$UPDATE_BRANCH?expand=1"
+            echo 'The snapshot branch is ready for a maintainer to review and open as a pull request.'
+          } >> "$GITHUB_STEP_SUMMARY"

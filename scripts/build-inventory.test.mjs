@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs"
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import test from "node:test"
@@ -7,7 +7,12 @@ import { fileURLToPath } from "node:url"
 
 import { INVENTORY_KEYS, collectInventory, workflowNodeKinds } from "./build-inventory.mjs"
 
-const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..")
+const snapshot = JSON.parse(
+  readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), "../content/generated/product-source.json"),
+    "utf8"
+  )
+)
 
 test("workflowNodeKinds counts the literal members and nothing after the array", () => {
   const source = [
@@ -51,8 +56,9 @@ test("collectInventory counts only directories carrying the marker file", () => 
   assert.equal(inventory.adrs, 1)
 })
 
-test("the repository itself reports a positive figure for every key", () => {
-  const inventory = collectInventory(REPO_ROOT)
+test("the versioned product snapshot reports a positive figure for every key", () => {
+  const { inventory } = snapshot
+  assert.match(snapshot.provenance.commit, /^[0-9a-f]{40}$/)
   for (const key of INVENTORY_KEYS) {
     assert.ok(Number.isInteger(inventory[key]) && inventory[key] > 0, `${key} should be counted`)
   }

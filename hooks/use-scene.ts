@@ -1,6 +1,7 @@
 "use client"
 
-import { useInView, useReducedMotion } from "motion/react"
+import { useInView } from "motion/react"
+import { useReducedMotion } from "./use-reduced-motion"
 import type { RefObject } from "react"
 
 import { useHasMounted } from "./use-has-mounted"

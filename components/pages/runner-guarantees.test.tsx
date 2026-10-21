@@ -1,6 +1,5 @@
 import { act, render, screen, within } from "@testing-library/react"
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
+import productSource from "@web/content/generated/product-source.json"
 import { en } from "@web/content/en"
 import { zh } from "@web/content/zh"
 
@@ -94,10 +93,7 @@ describe("RunnerGuarantees", () => {
   })
 
   it("quotes the nesting limit the runtime enforces", () => {
-    const source = readFileSync(
-      join(__dirname, "../../../lib/workflow/nodes/shared/executor-support.ts"),
-      "utf8"
-    )
+    const source = productSource.sourceFiles["lib/workflow/nodes/shared/executor-support.ts"]
     expect(source).toContain(`MAX_SUBWORKFLOW_DEPTH = ${SUBWORKFLOW_DEPTH_LIMIT}`)
   })
 
