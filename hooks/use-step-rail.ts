@@ -20,6 +20,11 @@ interface StepRailOptions {
   intervalMs?: number
   /** Autoplay never starts when true; every step is rendered at once instead. */
   reducedMotion?: boolean
+  /**
+   * Holds autoplay without cancelling it: off screen, or while something else
+   * drives the position. The run resumes where it stood when this clears.
+   */
+  paused?: boolean
 }
 
 /**
@@ -45,6 +50,7 @@ export function useStepRail({
   stopAt = -1,
   intervalMs = 2600,
   reducedMotion = false,
+  paused = false,
 }: StepRailOptions): StepRail {
   const [index, setIndex] = useState(0)
   const [playRequested, setPlayRequested] = useState(true)
@@ -52,6 +58,9 @@ export function useStepRail({
 
   const halted = stopAt >= 0 && index >= stopAt && !resumedPastHalt
   const playing = playRequested && !reducedMotion && !halted && total > 1
+  // Held is not stopped: `playing` still reports the reader's intent, so the
+  // Play/Pause control does not flip while the rail is out of view.
+  const advancing = playing && !paused
 
   const clamp = useCallback(
     (value: number) => Math.min(Math.max(value, 0), Math.max(total - 1, 0)),
@@ -91,12 +100,12 @@ export function useStepRail({
   }, [halted])
 
   useEffect(() => {
-    if (!playing) return
+    if (!advancing) return
     const timer = setTimeout(() => {
       setIndex((current) => (current + 1 >= total ? current : current + 1))
     }, intervalMs)
     return () => clearTimeout(timer)
-  }, [playing, index, total, intervalMs])
+  }, [advancing, index, total, intervalMs])
 
   return {
     index,

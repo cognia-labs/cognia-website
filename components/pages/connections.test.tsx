@@ -57,14 +57,20 @@ describe("Connections", () => {
 
     const receipt = within(screen.getAllByRole("list")[0]).getAllByRole("listitem")[0]
     expect(receipt).toHaveAttribute("data-active", "true")
-    expect(screen.getAllByRole("list")[0]).toHaveStyle({
-      "--receipt-columns": "1.35fr 1fr 1fr 1fr",
-    })
+    expect(receipt).toHaveClass("before:scale-x-100")
 
     fireEvent.blur(source)
-    expect(screen.getAllByRole("list")[0]).toHaveStyle({
-      "--receipt-columns": "1fr 1fr 1fr 1fr",
-    })
+    expect(receipt).not.toHaveAttribute("data-active")
+  })
+
+  it("highlights without changing the layout", () => {
+    render(<Connections copy={en.plugins.connections} flowCopy={en.plugins.connectionFlow} />)
+    const list = screen.getAllByRole("list")[0]
+    fireEvent.mouseEnter(within(list).getAllByRole("listitem")[1])
+    // Widening the hovered column re-wrapped every receipt's text mid-hover.
+    expect(list).toHaveClass("xl:grid-cols-4")
+    expect(list.getAttribute("style") ?? "").not.toContain("--receipt-columns")
+    expect(list.className).not.toContain("grid-template-columns")
   })
 
   it("localises every receipt", () => {

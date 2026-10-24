@@ -85,8 +85,11 @@ export function FinalCta({
   return (
     <Section id="start" tone="stage" density="open" className="stage-scope overflow-hidden">
       <div aria-hidden className="stage-grid pointer-events-none absolute inset-0 opacity-60" />
-      <Hairline />
-      <div className="pt-14 lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
+      {/* Positioned so the content paints above the absolutely placed grid:
+       * an unpositioned sibling would sit under it, and the rules would run
+       * through the buttons and the copy. */}
+      <Hairline className="relative" />
+      <div className="relative pt-14 lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
         <div>
           <p className="flex items-center gap-3 font-mono text-xs uppercase tracking-widest text-muted">
             {index !== undefined ? (

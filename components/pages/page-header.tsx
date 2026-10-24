@@ -1,6 +1,5 @@
 import type { ReactNode } from "react"
 import { Hairline } from "@web/components/hairline"
-import { Reveal } from "@web/components/reveal"
 import { SiteLink } from "@web/components/site-link"
 import { SplitReveal } from "@web/components/split-reveal"
 import type {
@@ -34,9 +33,9 @@ interface PageHeaderProps {
  * to answer "what is on this page" — which, on pages that run to four or five
  * anchored sections, the reader otherwise has to discover by scrolling.
  *
- * `Reveal` with a `mount` trigger, not `view`: this block is the first screen,
- * and an in-view trigger would hold the page's `h1` at `opacity: 0` for a
- * reader who never scrolls.
+ * The entrance runs from CSS, not from a motion component: this block is the
+ * first screen, and anything that waits on an in-view trigger or on hydration
+ * holds the page's `h1` at `opacity: 0` for a reader who never gets there.
  */
 export function PageHeader({ copy, common, locale, sections, meta, docsOrigin }: PageHeaderProps) {
   const anchored = (sections ?? []).filter((section) => section.id)
@@ -45,7 +44,7 @@ export function PageHeader({ copy, common, locale, sections, meta, docsOrigin }:
     <div className="bg-paper">
       <div className="mx-auto max-w-shell px-5 pb-16 pt-20 md:pt-28 lg:px-8">
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] lg:gap-16">
-          <Reveal trigger="mount">
+          <div>
             {/* A single link home, not a `<nav>`: one link is not a navigation
              * region, and adding a second landmark would clutter the landmark
              * list every page already gets from the site header and footer. */}
@@ -68,8 +67,10 @@ export function PageHeader({ copy, common, locale, sections, meta, docsOrigin }:
               text={copy.title}
               className="mt-6 max-w-3xl text-balance text-4xl font-medium leading-[1.1] tracking-tight text-ink md:text-5xl lg:text-6xl"
             />
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">{copy.subtitle}</p>
-          </Reveal>
+            <p className="enter-fade mt-6 max-w-2xl text-lg leading-relaxed text-muted [--enter-delay:280ms]">
+              {copy.subtitle}
+            </p>
+          </div>
 
           {anchored.length > 0 || meta ? (
             <div className="mt-12 border-t border-hairline pt-8 lg:mt-0 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-2">

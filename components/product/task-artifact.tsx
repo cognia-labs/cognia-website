@@ -189,7 +189,9 @@ function ApprovalArtifact({ copy }: { copy: TaskArtifactsCopy["approval"] }) {
        * and do nothing, which is a worse answer than saying plainly that the
        * real checkpoint is in the application. */}
       <div className="flex flex-wrap items-center gap-3">
-        <span className="rounded-control border border-approval/60 px-3 py-1.5 font-mono text-xs text-approval">
+        {/* Amber marks the waiting state through the border; the word is text
+         * and stays legible, which amber on the light stage is not. */}
+        <span className="rounded-control border border-approval/60 px-3 py-1.5 font-mono text-xs text-on-stage">
           {copy.approveLabel}
         </span>
         <span className="rounded-control border border-on-stage-hairline px-3 py-1.5 font-mono text-xs text-on-stage-muted">

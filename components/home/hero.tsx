@@ -1,5 +1,4 @@
 import { DownloadCta } from "@web/components/download-cta"
-import { Reveal } from "@web/components/reveal"
 import { formatIndex } from "@web/components/section"
 import { SplitReveal } from "@web/components/split-reveal"
 import { HeroTaskTicket } from "@web/components/home/hero-task-ticket"
@@ -106,10 +105,10 @@ export function Hero({ locale, copy, releaseState, docsOrigin, index }: HeroProp
             </div>
           </div>
 
-          {/* `mount`, not `view`: this is the first screen, and an in-view
-           * trigger would hold the page's largest visual at opacity 0 for a
-           * reader who never scrolls. */}
-          <Reveal variant="scale" trigger="mount" className="min-w-0 lg:col-span-6 xl:col-span-7">
+          {/* Enters from CSS on first paint, not from an in-view trigger or a
+           * motion component: either would hold the page's largest visual at
+           * opacity 0 until hydration, for a reader who may never scroll. */}
+          <div className="enter-stage min-w-0 lg:col-span-6 xl:col-span-7">
             {loop ? (
               <ProductVideo
                 mode="ambient"
@@ -127,16 +126,16 @@ export function Hero({ locale, copy, releaseState, docsOrigin, index }: HeroProp
                 caption={hero.stageCaption}
               />
             )}
-          </Reveal>
+          </div>
         </div>
 
         {/* The first screen ends on the task, not on a row of promises: the
          * four claims that used to sit here (open source, your models,
          * permissioned actions, desktop first) are what the trust and run
          * sections prove, and stating them here as well made both thinner. */}
-        <Reveal trigger="mount" delay={0.15} className="mt-12">
+        <div className="enter-fade mt-12 [--enter-delay:320ms]">
           <HeroTaskTicket copy={hero.ticket} reconstruction={copy.reconstruction} />
-        </Reveal>
+        </div>
       </div>
     </section>
   )

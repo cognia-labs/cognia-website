@@ -53,7 +53,7 @@ export function DesktopSection({
         subtitle={copy.subtitle}
       />
 
-      <div className="mt-16 border-y border-hairline">
+      <div className="mt-14 border-y border-hairline">
         <div className="grid lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
           <ul className="flex flex-col border-b border-hairline py-6 lg:border-b-0 lg:border-r lg:pr-8">
             {copy.capabilities.map((capability) => (

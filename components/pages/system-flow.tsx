@@ -52,7 +52,7 @@ export function SystemFlow({ copy, learnMore, locale, docsOrigin }: SystemFlowPr
         >
           <div
             aria-hidden
-            className="absolute left-8 top-0 hidden h-full w-px md:block lg:left-0 lg:top-8 lg:h-px lg:w-full"
+            className="handoff-rail absolute left-8 top-0 hidden h-full w-px md:block lg:left-0 lg:top-8 lg:h-px lg:w-full"
           >
             <Hairline orientation="y" tone="hairline-strong" className="lg:hidden" />
             <Hairline tone="hairline-strong" className="hidden lg:block" />

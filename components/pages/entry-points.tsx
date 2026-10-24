@@ -80,7 +80,10 @@ export function EntryPoints({ copy, reconstruction, index }: EntryPointsProps) {
 
           {/* The rail: one rule across every station with the marker on it.
            * Decorative, the station labels and the sentence above carry it. */}
-          <div aria-hidden className="relative hidden h-px bg-hairline-strong lg:block">
+          <div
+            aria-hidden
+            className="handoff-rail relative hidden h-px bg-hairline-strong lg:block"
+          >
             {live ? (
               <span
                 data-slot="handoff-marker"
@@ -211,8 +214,8 @@ function StationFrame({ station, frames, reconstruction }: StationFrameProps) {
         <div className="mx-auto w-40 rounded-panel border border-hairline-strong bg-surface p-1.5">
           <div className="rounded-control border border-hairline bg-paper">
             <div className={chrome}>
-              <span className="flex items-center gap-1.5 text-approval">
-                <Icon name="alert" size={14} />
+              <span className="flex items-center gap-1.5 text-ink">
+                <Icon name="alert" size={14} className="shrink-0 text-approval" />
                 <span className="truncate">{frames.mobile.heading}</span>
               </span>
             </div>

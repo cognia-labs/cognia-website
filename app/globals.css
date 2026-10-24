@@ -168,6 +168,9 @@
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      /* A staggered sequence would otherwise still land cell by cell, just
+       * without the motion: the finished state arrives at once. */
+      animation-delay: 0ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
@@ -188,6 +191,11 @@
       opacity: 1 !important;
       transform: none !important;
       animation: none !important;
+    }
+
+    /* `::details-content` is a pseudo-element, outside the `*` rule above. */
+    .faq-item::details-content {
+      transition: none !important;
     }
 
     ::view-transition-group(*),
@@ -216,6 +224,30 @@
   from {
     opacity: 0;
     transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* First-screen entrances. The content above the fold animates from CSS on
+ * first paint, like its headline, rather than through `Reveal`: a motion
+ * component server-renders its start state, so the hero stage and every page
+ * header used to sit at opacity 0 until hydration — or for good, without it.
+ * `both` holds the start state only through the delay, which CSS owns too. */
+.enter-stage {
+  animation: enter-stage 600ms var(--ease-entrance) 120ms both;
+}
+
+.enter-fade {
+  animation: fade-through 500ms var(--ease-entrance) var(--enter-delay, 200ms) both;
+}
+
+@keyframes enter-stage {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
   }
   to {
     opacity: 1;
@@ -463,6 +495,14 @@
     }
   }
 
+  /* A sequence inside a block that has not entered yet waits for it. Without
+   * this the lighting ran at page load and had long finished by the time the
+   * reader scrolled to it. `Reveal` sets `data-seen` on entry; under reduced
+   * motion it renders no `data-reveal` at all, so the rules end lit. */
+  [data-reveal]:not([data-seen]) .station-lit::before {
+    animation: none;
+  }
+
   /* Paper grain: a film of monochrome noise over the reading layer, so the
    * paper reads as stock rather than as a flat fill. It is an SVG turbulence
    * tile at very low opacity and it carries no hue, which keeps it inside the
@@ -515,19 +555,34 @@
     animation: station-lit 500ms var(--ease-entrance) 120ms forwards;
   }
 
+  /* The tick is drawn with its headline. A heading still waiting off screen
+   * holds the tick undrawn too; when the heading runs, the animation is set
+   * again and therefore restarts, so number and title arrive together. */
+  :has(> [data-split="armed"]) > * .index-tick::after {
+    animation: none;
+  }
+
   /* Handoff rail: a marker travelling along a rule between stations, for the
-   * sequence in which one task moves between devices. The marker's position is
-   * the only animated property and it stops at the final station. */
+   * sequence in which one task moves between devices. It stops at the final
+   * station. The rail is a size container, so the marker can travel its width
+   * as a transform (`100cqw`) rather than by animating `left`, which re-ran
+   * layout on every frame of a four-second run. Its centring offset is the
+   * separate `translate` property, which composes with this. */
+  .handoff-rail {
+    container-type: inline-size;
+  }
+
   .handoff-marker {
+    left: 0;
     animation: handoff var(--handoff-duration, 6s) var(--ease-entrance) forwards;
   }
 
   @keyframes handoff {
     from {
-      left: 0%;
+      transform: translateX(0);
     }
     to {
-      left: 100%;
+      transform: translateX(100cqw);
     }
   }
 

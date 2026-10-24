@@ -1,13 +1,14 @@
 "use client"
 
 import { useEffect, useRef, type ReactNode } from "react"
+import { useInView } from "motion/react"
 import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 import { Icon, type IconName } from "@web/components/icon"
 import { TaskArtifact } from "@web/components/product/task-artifact"
 import { Section, SectionHeading } from "@web/components/section"
 import { format } from "@web/content"
 import type { ReconstructionCopy, SignatureCopy, SignatureStep, StepTone } from "@web/content/types"
-import { usePinnedProgress } from "@web/hooks/use-pinned-progress"
+import { TRAVEL_PER_STEP_DVH, usePinnedProgress } from "@web/hooks/use-pinned-progress"
 import { useStepRail } from "@web/hooks/use-step-rail"
 import { DemoActivityList } from "./demo-activity-list"
 import { DemoFileTree } from "./demo-file-tree"
@@ -99,7 +100,7 @@ function StepPanel({
 
   return (
     <div className="signature-stage border-y border-on-stage-hairline bg-graphite">
-      <div className="grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
+      <div className="grid h-full xl:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
         <div className="flex flex-col border-on-stage-hairline p-5 md:p-6 xl:border-r">
           <div className="flex items-center gap-2">
             {STEP_ICON[step.key] ? (
@@ -163,11 +164,6 @@ export function SignatureDemo({
   film,
 }: SignatureDemoProps) {
   const reduced = useReducedMotion() ?? false
-  const rail = useStepRail({
-    total: copy.steps.length,
-    stopAt: APPROVAL_INDEX,
-    reducedMotion: reduced,
-  })
   // Destructured rather than kept as one `pin` object: a `pin.pinned` read in
   // JSX is a member access on a value that also carries `wrapperRef`, which the
   // compiler's lint rule cannot distinguish from a ref read during render.
@@ -177,6 +173,15 @@ export function SignatureDemo({
     pinned,
     scrollToIndex,
   } = usePinnedProgress({ steps: copy.steps.length, enabled: !reduced })
+  // Autoplay runs only while the reader can see it. Started on load, it had
+  // reached the approval halt long before anyone scrolled down to it.
+  const railInView = useInView(pinWrapperRef, { amount: 0.4 })
+  const rail = useStepRail({
+    total: copy.steps.length,
+    stopAt: APPROVAL_INDEX,
+    reducedMotion: reduced,
+    paused: pinned || !railInView,
+  })
 
   // While pinned, scroll position is the single source of truth: the rail's own
   // index would drift from the page the moment the reader scrolled. Autoplay is
@@ -243,23 +248,14 @@ export function SignatureDemo({
           ))}
         </ol>
       ) : (
-        <div
-          ref={pinWrapperRef}
-          // The travel the reader scrolls through while the panel below stays
-          // put. Only present once pinning is live, so an unpinned page — the
-          // server render, a narrow viewport, reduced motion — is exactly as
-          // tall as its content.
-          // 100dvh for the first step + 45dvh per subsequent step ≈ 325dvh total
-          // for 6 steps. The panel still pins long enough to read each state,
-          // without stranding the reader inside several mostly empty screens.
-          style={
-            pinned ? { height: `calc(100dvh + ${(copy.steps.length - 1) * 45}dvh)` } : undefined
-          }
-          className={film ? "mt-8" : "mt-14"}
-        >
+        <div ref={pinWrapperRef} className={film ? "mt-8" : "mt-14"}>
+          {/* While pinned the stage is only as tall as its content and holds a
+           * little above the middle of the screen, so the section opens and
+           * closes on the panel itself rather than on a viewport of empty paper
+           * around a centred one. */}
           <div
             data-pinned-viewport={pinned ? "" : undefined}
-            className={pinned ? "sticky top-16 flex h-[calc(100dvh-4rem)] items-center py-6" : ""}
+            className={pinned ? "sticky top-[max(5.5rem,calc(50dvh-16rem))]" : ""}
           >
             <div
               data-pinned-stage={pinned ? "" : undefined}
@@ -363,7 +359,9 @@ export function SignatureDemo({
                * change is always accompanied by real content changing. */}
               <div
                 key={active.key}
-                className={`animate-[fade-through_320ms_ease-out] ${pinned ? "min-h-0" : ""}`}
+                className={`animate-[fade-through_320ms_var(--ease-entrance)] ${
+                  pinned ? "grid min-h-[25rem]" : ""
+                }`}
               >
                 <StepPanel
                   step={active}
@@ -373,6 +371,17 @@ export function SignatureDemo({
               </div>
             </div>
           </div>
+          {/* The travel the reader scrolls through while the stage holds. Only
+           * present once pinning is live, so an unpinned page — the server
+           * render, a narrow viewport, reduced motion — is exactly as tall as
+           * its content. */}
+          {pinned ? (
+            <div
+              aria-hidden
+              data-pinned-travel=""
+              style={{ height: `${(copy.steps.length - 1) * TRAVEL_PER_STEP_DVH}dvh` }}
+            />
+          ) : null}
         </div>
       )}
       {footer ? <div className="mt-12">{footer}</div> : null}

@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react"
 import { useReducedMotion } from "@web/hooks/use-reduced-motion"
-import type { ReactNode } from "react"
+import { useState, type ReactNode } from "react"
 import { EASE_ENTRANCE } from "@web/lib/motion"
 
 interface RevealProps {
@@ -42,6 +42,10 @@ export function Reveal({
   delay = 0,
 }: RevealProps) {
   const reduced = useReducedMotion()
+  // Marks the block as having arrived, so CSS sequences inside it (a cell's
+  // top rule lighting, say) start with the entrance rather than at page load,
+  // long before the reader scrolls to them.
+  const [seen, setSeen] = useState(false)
 
   if (reduced) {
     return <div className={className}>{children}</div>
@@ -55,6 +59,7 @@ export function Reveal({
     return (
       <motion.div
         data-reveal=""
+        data-seen=""
         className={className}
         initial={initial}
         animate={target}
@@ -68,9 +73,11 @@ export function Reveal({
   return (
     <motion.div
       data-reveal=""
+      data-seen={seen ? "" : undefined}
       className={className}
       initial={initial}
       whileInView={target}
+      onViewportEnter={() => setSeen(true)}
       viewport={{ once: true, amount: 0.2 }}
       transition={transition}
     >

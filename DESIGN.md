@@ -259,6 +259,9 @@ The recurring silhouette is a bounded work surface: rectangular, cropped, and di
 - A surface that builds itself up in phases runs through `useScene`: it starts when it reaches the viewport, runs once, and ends on its static picture. Off screen it holds its opening state, never a finished picture that would flash to empty. Under reduced motion it renders the finished picture at once.
 - Respect `prefers-reduced-motion` in JavaScript as well as CSS. Reduced motion renders a complete static state, not an empty start frame.
 - Headlines rise into place word by word behind a mask (`SplitReveal`; CJK per character, punctuation kept with its neighbour, and each CJK word held on one line by build-time boundaries in `content/generated/cjk-words.json`). The first screen's headline runs from CSS on first paint; a section heading arms only if it is still off screen after hydration. A heading is never hidden in the server markup, and its text appears exactly once.
+- The first screen (hero stage, task ticket, every sub-page header) enters from CSS on first paint (`.enter-stage`, `.enter-fade`), never through a motion component, which server-renders its hidden start state. Below the fold, `Reveal` sets `data-seen` on entry, and CSS sequences inside it (`.station-lit`) wait for it rather than running at page load.
+- Autoplaying sequences (the signature rail, the desktop transcript) start when they reach the viewport and hold while off screen; a run that started on load has finished before anyone sees it.
+- The pinned narrative pins a stage of intrinsic height over a travel spacer, so it neither opens nor closes on a viewport of empty paper.
 - A route change fades the page body through to the next page (`PageTransition`, React's `ViewTransition`); navigation and footer do not move. Browsers without the View Transitions API, and reduced motion, swap instantly.
 
 ## Do's and Don'ts

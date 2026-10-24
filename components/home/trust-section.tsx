@@ -65,7 +65,7 @@ export function TrustSection({
   ]
 
   return (
-    <Section id="trust" tone="paper" density="tight">
+    <Section id="trust" tone="paper" density="tight" className="border-t border-hairline">
       <SectionHeading
         index={index}
         eyebrow={copy.eyebrow}
@@ -103,7 +103,7 @@ export function TrustSection({
           className="mt-4 grid grid-cols-2 gap-px border-y border-hairline bg-hairline lg:grid-cols-4"
         >
           {stats.map((stat) => (
-            <div key={stat.label} className={`trace bg-paper ${CELL}`}>
+            <div key={stat.label} className={`bg-paper ${CELL}`}>
               <dt className="font-mono text-xs uppercase tracking-widest text-muted">
                 {stat.label}
               </dt>

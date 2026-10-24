@@ -157,3 +157,14 @@ describe("Hero", () => {
     )
   })
 })
+
+describe("Hero first paint", () => {
+  it("does not wait on hydration to show the stage or the task", () => {
+    const { container } = renderHero()
+    // A motion wrapper server-renders opacity 0; the first screen enters from
+    // CSS instead, so markup without JavaScript is the finished picture.
+    expect(container.querySelector("[data-reveal]")).toBeNull()
+    expect(container.querySelector(".enter-stage")).toBeInTheDocument()
+    expect(container.querySelector(".enter-fade")).toBeInTheDocument()
+  })
+})

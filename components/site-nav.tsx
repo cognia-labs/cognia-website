@@ -82,7 +82,7 @@ export function SiteNav({ locale, route, copy, releaseState, docsOrigin }: SiteN
   const menus = [copy.nav.productMenu, copy.nav.useCasesMenu]
 
   return (
-    <header className="sticky top-0 z-50 border-b border-hairline bg-paper/85 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 border-b border-hairline bg-paper/95 backdrop-blur-md backdrop-saturate-150">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-control focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
@@ -172,7 +172,7 @@ export function SiteNav({ locale, route, copy, releaseState, docsOrigin }: SiteN
             onClick={toggleSheet}
             aria-expanded={sheetOpen}
             aria-controls={sheetOpen ? "site-nav-sheet" : undefined}
-            className="inline-flex items-center gap-1.5 rounded-control border border-hairline px-3 py-2 text-sm text-ink lg:hidden"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-control border border-hairline-strong px-3 text-sm text-ink transition-colors hover:bg-surface lg:hidden"
           >
             {/* Beside the words, never instead of them: the label is what
              * names this control for assistive technology and for anyone who
@@ -319,7 +319,7 @@ function NavDropdown({ menu, icons, locale, docsOrigin }: NavDropdownProps) {
           onClick={(event) => {
             if ((event.target as Element).closest("a")) close()
           }}
-          className="nav-menu absolute left-0 top-full w-80 rounded-panel border border-hairline bg-surface p-2 shadow-sm"
+          className="absolute left-0 top-full w-80 rounded-panel border border-hairline bg-surface p-2 shadow-sm"
         >
           <ul>
             {menu.items.map((item) => (
