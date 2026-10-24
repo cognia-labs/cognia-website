@@ -172,17 +172,39 @@ export function usePinnedProgress({ steps, enabled }: UsePinnedProgressOptions):
       frame = window.requestAnimationFrame(measure)
     }
 
+    // Scrolling elsewhere on the page has nothing to measure. While the
+    // section is more than a screen away the handler returns at once; the
+    // observer measures once more on the way out, so the index settles on the
+    // step the reader left it at, and again on the way back in.
+    let near = true
+    const node = wrapperRef.current
+    const observer =
+      node && typeof IntersectionObserver === "function"
+        ? new IntersectionObserver(
+            (entries) => {
+              near = entries.some((entry) => entry.isIntersecting)
+              schedule()
+            },
+            { rootMargin: "100% 0px" }
+          )
+        : null
+    if (node) observer?.observe(node)
+
+    const onScroll = () => {
+      if (near) schedule()
+    }
     const apply = () => measure()
 
     apply()
     query.addEventListener("change", apply)
-    window.addEventListener("scroll", schedule, { passive: true })
+    window.addEventListener("scroll", onScroll, { passive: true })
     window.addEventListener("resize", schedule)
 
     return () => {
       if (frame) window.cancelAnimationFrame(frame)
+      observer?.disconnect()
       query.removeEventListener("change", apply)
-      window.removeEventListener("scroll", schedule)
+      window.removeEventListener("scroll", onScroll)
       window.removeEventListener("resize", schedule)
     }
   }, [enabled, steps])

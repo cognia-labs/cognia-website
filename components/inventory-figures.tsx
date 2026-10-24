@@ -48,12 +48,15 @@ export function InventoryFigures({
             <div
               key={key}
               data-figure={key}
-              className={`trace flex flex-col gap-2 ${cellClassName} ${cell}`}
+              // No hover sweep: a figure is not a link. Its value sits at the
+              // foot of the cell, so figures in one row share a line even when
+              // a label wraps to two on a phone.
+              className={`flex flex-col gap-2 ${cellClassName} ${cell}`}
             >
               <dt className="font-mono text-xs uppercase tracking-widest text-muted">
                 {copy.figures[key]}
               </dt>
-              <dd className="text-3xl font-medium tabular-nums tracking-tight text-ink">
+              <dd className="mt-auto text-3xl font-medium tabular-nums tracking-tight text-ink">
                 {figure === null ? "\u2014" : numbers.format(figure)}
               </dd>
             </div>

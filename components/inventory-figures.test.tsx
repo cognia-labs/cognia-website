@@ -89,4 +89,16 @@ describe("InventoryFigures", () => {
     )
     expect(container.querySelector("[data-figure]")).toHaveClass("bg-surface")
   })
+
+  it("sets each value at the foot of its cell and offers no link affordance", () => {
+    const { container } = render(
+      <InventoryFigures copy={en.inventory} inventory={inventory()} locale="en" />
+    )
+    const cell = container.querySelector("[data-figure]") as HTMLElement
+    // A label that wraps to two lines on a phone must not push its number
+    // below its neighbour's.
+    expect(cell.querySelector("dd")).toHaveClass("mt-auto")
+    // `.trace` is the link sweep; a counted figure is not a link.
+    expect(cell).not.toHaveClass("trace")
+  })
 })

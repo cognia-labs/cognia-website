@@ -65,7 +65,7 @@ export function PageHeader({ copy, common, locale, sections, meta, docsOrigin }:
               as="h1"
               trigger="mount"
               text={copy.title}
-              className="mt-6 max-w-3xl text-balance text-4xl font-medium leading-[1.1] tracking-tight text-ink md:text-5xl lg:text-6xl"
+              className="mt-6 max-w-3xl text-balance text-4xl font-medium leading-[1.08] tracking-tight text-ink md:text-5xl lg:text-6xl"
             />
             <p className="enter-fade mt-6 max-w-2xl text-lg leading-relaxed text-muted [--enter-delay:280ms]">
               {copy.subtitle}

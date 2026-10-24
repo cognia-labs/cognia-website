@@ -107,7 +107,7 @@ export function FinalCta({
           <SplitReveal
             as="h2"
             text={finalCta.title}
-            className="mt-6 max-w-3xl text-balance text-3xl font-medium leading-tight tracking-tight text-ink md:text-4xl lg:text-5xl"
+            className="mt-6 max-w-3xl text-balance text-3xl font-medium leading-[1.2] tracking-tight text-ink md:text-4xl lg:text-5xl"
           />
 
           <div className="mt-10">

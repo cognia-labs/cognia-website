@@ -1,7 +1,13 @@
 "use client"
 
-import React, { useCallback, useMemo, useRef, useState } from "react"
-import { AnimatePresence, motion, useMotionTemplate } from "motion/react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
+import {
+  AnimatePresence,
+  motion,
+  useMotionTemplate,
+  useMotionValue,
+  useTransform,
+} from "motion/react"
 
 interface Position {
   /** The x coordinate of the lens */
@@ -50,22 +56,34 @@ export function Lens({
   }
 
   const [isHovering, setIsHovering] = useState(false)
-  const [mousePosition, setMousePosition] = useState<Position>(position)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const currentPosition = useMemo(() => {
-    if (isStatic) return position
-    if (defaultPosition && !isHovering) return defaultPosition
-    return mousePosition
-  }, [isStatic, position, defaultPosition, isHovering, mousePosition])
+  // The pointer lives in motion values, not React state. Magic UI's version
+  // set state on every mousemove, which re-rendered the whole magnified copy
+  // of the stage per event; here a move only rewrites the mask, the zoom
+  // origin and the rim's transform.
+  const pointerX = useMotionValue(position.x)
+  const pointerY = useMotionValue(position.y)
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    })
-  }, [])
+  // Where the lens rests when the pointer is not driving it.
+  const resting = isStatic ? position : defaultPosition && !isHovering ? defaultPosition : null
+  const restX = resting?.x
+  const restY = resting?.y
+  useEffect(() => {
+    if (restX === undefined || restY === undefined) return
+    pointerX.set(restX)
+    pointerY.set(restY)
+  }, [restX, restY, pointerX, pointerY])
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isStatic) return
+      const rect = e.currentTarget.getBoundingClientRect()
+      pointerX.set(e.clientX - rect.left)
+      pointerY.set(e.clientY - rect.top)
+    },
+    [isStatic, pointerX, pointerY]
+  )
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Escape") setIsHovering(false)
@@ -73,59 +91,45 @@ export function Lens({
 
   const maskImage = useMotionTemplate`radial-gradient(circle ${
     lensSize / 2
-  }px at ${currentPosition.x}px ${currentPosition.y}px, ${lensColor} 100%, transparent 100%)`
+  }px at ${pointerX}px ${pointerY}px, ${lensColor} 100%, transparent 100%)`
+  const zoomOrigin = useMotionTemplate`${pointerX}px ${pointerY}px`
+  // The rim moves by transform from the corner rather than by `left`/`top`.
+  const rimX = useTransform(pointerX, (value) => value - lensSize / 2)
+  const rimY = useTransform(pointerY, (value) => value - lensSize / 2)
 
-  const LensContent = useMemo(() => {
-    const { x, y } = currentPosition
-
-    return (
-      <React.Fragment key="lens">
+  const lensContent = (
+    <React.Fragment key="lens">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration }}
+        aria-hidden
+        inert
+        className="absolute inset-0 overflow-hidden"
+        style={{ maskImage, WebkitMaskImage: maskImage, zIndex: 1 }}
+      >
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration }}
-          aria-hidden
-          inert
-          className="absolute inset-0 overflow-hidden"
-          style={{
-            maskImage,
-            WebkitMaskImage: maskImage,
-            transformOrigin: `${x}px ${y}px`,
-            zIndex: 1,
-          }}
+          className="absolute inset-0"
+          style={{ scale: zoomFactor, transformOrigin: zoomOrigin }}
         >
-          <div
-            className="absolute inset-0"
-            style={{
-              transform: `scale(${zoomFactor})`,
-              transformOrigin: `${x}px ${y}px`,
-            }}
-          >
-            {children}
-          </div>
+          {children}
         </motion.div>
-        {/* The rim, outside the masked layer so its edge is not clipped: without
-         * it the magnified circle reads as a double exposure of the page. */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration }}
-          aria-hidden
-          data-lens-rim=""
-          className="pointer-events-none absolute rounded-full border border-hairline-strong shadow-[0_8px_24px_-12px_rgb(0_0_0/0.35)]"
-          style={{
-            width: lensSize,
-            height: lensSize,
-            left: x - lensSize / 2,
-            top: y - lensSize / 2,
-            zIndex: 2,
-          }}
-        />
-      </React.Fragment>
-    )
-  }, [currentPosition, maskImage, zoomFactor, children, duration, lensSize])
+      </motion.div>
+      {/* The rim, outside the masked layer so its edge is not clipped: without
+       * it the magnified circle reads as a double exposure of the page. */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration }}
+        aria-hidden
+        data-lens-rim=""
+        className="pointer-events-none absolute left-0 top-0 rounded-full border border-hairline-strong shadow-[0_8px_24px_-12px_color-mix(in_oklab,var(--ink)_35%,transparent)]"
+        style={{ width: lensSize, height: lensSize, x: rimX, y: rimY, zIndex: 2 }}
+      />
+    </React.Fragment>
+  )
 
   return (
     <div
@@ -141,9 +145,9 @@ export function Lens({
     >
       {children}
       {isStatic || defaultPosition ? (
-        LensContent
+        lensContent
       ) : (
-        <AnimatePresence>{isHovering && LensContent}</AnimatePresence>
+        <AnimatePresence>{isHovering && lensContent}</AnimatePresence>
       )}
     </div>
   )

@@ -134,8 +134,15 @@ export function CapabilitySections({
           <Section key={section.title} id={section.id} tone={tone} density={density}>
             <div className="lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
               <div>
-                <h2 className="flex items-start gap-3 text-balance text-3xl font-medium leading-tight tracking-tight text-ink md:text-4xl lg:text-5xl">
-                  {icon ? <Icon name={icon} size={20} className="mt-2 text-muted" /> : null}
+                <h2 className="flex items-start gap-3 text-balance text-3xl font-medium leading-[1.2] tracking-tight text-ink md:text-4xl lg:text-5xl">
+                  {/* A box one line tall centres the mark on the title's first
+                   * line at every breakpoint; a fixed top margin only did at
+                   * one size and left it riding high on the 48px line. */}
+                  {icon ? (
+                    <span aria-hidden className="flex h-[1lh] shrink-0 items-center">
+                      <Icon name={icon} size={20} className="text-muted" />
+                    </span>
+                  ) : null}
                   {section.title}
                 </h2>
               </div>

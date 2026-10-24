@@ -88,7 +88,7 @@ export function Hero({ locale, copy, releaseState, docsOrigin, index }: HeroProp
               as="h1"
               trigger="mount"
               text={hero.title}
-              className="mt-7 text-balance text-4xl font-medium leading-[1.06] tracking-tight text-ink md:text-5xl lg:text-[2.75rem] xl:text-[3.25rem] 2xl:text-[3.5rem]"
+              className="mt-7 text-balance text-4xl font-medium leading-[1.08] tracking-tight text-ink md:text-5xl lg:text-[2.75rem] xl:text-[3.25rem] 2xl:text-[3.5rem]"
             />
 
             <p className="mt-7 max-w-xl text-lg leading-relaxed text-muted md:text-xl">

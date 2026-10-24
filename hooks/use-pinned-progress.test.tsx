@@ -1,5 +1,5 @@
 /** @jest-environment jsdom */
-import { act, renderHook } from "@testing-library/react"
+import { act, render, renderHook } from "@testing-library/react"
 import {
   PIN_MIN_WIDTH,
   indexFromOffset,
@@ -173,6 +173,51 @@ describe("usePinnedProgress", () => {
     expect(events).not.toContain("wheel")
     expect(events).not.toContain("touchmove")
     add.mockRestore()
+  })
+
+  it("does no layout work for scrolling while the section is far away", () => {
+    stubViewport(true)
+    let report: (entries: Array<{ isIntersecting: boolean }>) => void = () => {}
+    const OriginalObserver = globalThis.IntersectionObserver
+    globalThis.IntersectionObserver = class {
+      constructor(callback: typeof report) {
+        report = callback
+      }
+      observe() {}
+      disconnect() {}
+    } as unknown as typeof IntersectionObserver
+    // Run frames synchronously, so each scheduled measure is one call.
+    const frame = jest.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+      callback(0)
+      return 0
+    })
+
+    function Probe() {
+      const { wrapperRef } = usePinnedProgress({ steps: 6, enabled: true })
+      return (
+        <div ref={wrapperRef}>
+          <div />
+        </div>
+      )
+    }
+    render(<Probe />)
+
+    act(() => report([{ isIntersecting: false }]))
+    frame.mockClear()
+    act(() => {
+      window.dispatchEvent(new Event("scroll"))
+    })
+    expect(frame).not.toHaveBeenCalled()
+
+    act(() => report([{ isIntersecting: true }]))
+    frame.mockClear()
+    act(() => {
+      window.dispatchEvent(new Event("scroll"))
+    })
+    expect(frame).toHaveBeenCalledTimes(1)
+
+    frame.mockRestore()
+    globalThis.IntersectionObserver = OriginalObserver
   })
 
   it("listens passively so scrolling is never blocked on the handler", () => {

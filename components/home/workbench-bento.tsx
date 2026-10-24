@@ -107,7 +107,11 @@ export function WorkbenchBento({ copy, common, reconstruction, index }: Workbenc
                       <span className="w-20 shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted">
                         {artifacts.plan.stateLabels[item.state]}
                       </span>
-                      <span className="min-w-0 flex-1 truncate text-sm text-ink">{item.text}</span>
+                      {/* Wraps rather than truncating: on a phone the hub is one
+                       * column wide and every step lost its second half. */}
+                      <span className="min-w-0 flex-1 text-sm leading-snug text-ink">
+                        {item.text}
+                      </span>
                     </li>
                   )
                 })}

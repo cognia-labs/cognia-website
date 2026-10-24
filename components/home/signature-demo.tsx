@@ -133,6 +133,11 @@ function StepPanel({
   )
 }
 
+/** The rail's own controls: the hairline button, with the same hover and
+ * 1px press response as the site's `Button`. */
+const RAIL_CONTROL =
+  "inline-flex items-center gap-1.5 rounded-control border border-hairline-strong px-3 py-1.5 text-xs text-muted transition-[color,background-color,transform] duration-150 ease-out hover:bg-paper hover:text-ink active:translate-y-px disabled:pointer-events-none disabled:opacity-40"
+
 /**
  * "One task. Every step visible." (spec §4.2, §6.3)
  *
@@ -316,7 +321,7 @@ export function SignatureDemo({
                     type="button"
                     onClick={() => (pinned ? scrollToIndex(activeIndex - 1) : rail.previous())}
                     disabled={activeIndex === 0}
-                    className="inline-flex items-center gap-1.5 rounded-control border border-hairline-strong px-3 py-1.5 text-xs text-muted transition-colors hover:text-ink disabled:opacity-40"
+                    className={RAIL_CONTROL}
                   >
                     <Icon name="previous" size={14} />
                     <span className="max-lg:sr-only">{copy.previousLabel}</span>
@@ -325,11 +330,7 @@ export function SignatureDemo({
                    * A play button that fights the scroll position would be a
                    * control that visibly does nothing. */}
                   {pinned ? null : (
-                    <button
-                      type="button"
-                      onClick={rail.toggle}
-                      className="inline-flex items-center gap-1.5 rounded-control border border-hairline-strong px-3 py-1.5 text-xs text-muted transition-colors hover:text-ink"
-                    >
+                    <button type="button" onClick={rail.toggle} className={RAIL_CONTROL}>
                       <Icon name={rail.playing ? "pending" : "play"} size={14} />
                       {rail.playing ? copy.pauseLabel : copy.playLabel}
                     </button>
@@ -338,7 +339,7 @@ export function SignatureDemo({
                     type="button"
                     onClick={() => (pinned ? scrollToIndex(activeIndex + 1) : rail.next())}
                     disabled={activeIndex === copy.steps.length - 1}
-                    className="inline-flex items-center gap-1.5 rounded-control border border-hairline-strong px-3 py-1.5 text-xs text-muted transition-colors hover:text-ink disabled:opacity-40"
+                    className={RAIL_CONTROL}
                   >
                     <span className="max-lg:sr-only">{copy.nextLabel}</span>
                     <Icon name="next" size={14} />

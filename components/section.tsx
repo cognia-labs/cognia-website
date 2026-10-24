@@ -160,7 +160,7 @@ export function SectionHeading({
       <SplitReveal
         as="h2"
         text={title}
-        className={`text-balance text-3xl font-medium leading-tight tracking-tight md:text-4xl lg:text-5xl ${
+        className={`text-balance text-3xl font-medium leading-[1.2] tracking-tight md:text-4xl lg:text-5xl ${
           onStage ? "text-on-stage" : "text-ink"
         }`}
       />
