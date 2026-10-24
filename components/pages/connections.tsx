@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type CSSProperties } from "react"
+import { useState } from "react"
 
 import { Reveal } from "@web/components/reveal"
 import { Section, SectionHeading } from "@web/components/section"
@@ -33,10 +33,6 @@ interface ConnectionsProps {
 export function Connections({ copy, flowCopy, index }: ConnectionsProps) {
   const terms = [copy.headings.reads, copy.headings.canAct, copy.headings.requiresApproval]
   const [activeReceipt, setActiveReceipt] = useState<number | null>(null)
-  const receiptColumns = copy.items
-    .map((_, index) => (activeReceipt === index ? "1.35fr" : "1fr"))
-    .join(" ")
-  const receiptStyle = { "--receipt-columns": receiptColumns } as CSSProperties
 
   return (
     <Section id="connections" tone="surface">
@@ -62,8 +58,7 @@ export function Connections({ copy, flowCopy, index }: ConnectionsProps) {
       <Reveal className={flowCopy ? "mt-10" : "mt-14"}>
         <ul
           data-slot="connection-receipts"
-          style={receiptStyle}
-          className="grid gap-px border-y border-hairline bg-hairline transition-[grid-template-columns] duration-500 ease-out md:grid-cols-2 xl:grid-cols-[var(--receipt-columns)]"
+          className="grid gap-px border-y border-hairline bg-hairline md:grid-cols-2 xl:grid-cols-4"
         >
           {copy.items.map((item, index) => (
             <li
@@ -71,9 +66,14 @@ export function Connections({ copy, flowCopy, index }: ConnectionsProps) {
               data-active={activeReceipt === index ? "true" : undefined}
               onMouseEnter={() => setActiveReceipt(index)}
               onMouseLeave={() => setActiveReceipt(null)}
+              // The active receipt lifts by tone and a cyan rule drawn across
+              // its top. It used to widen its column, which animated
+              // `grid-template-columns` and re-wrapped every line of text under
+              // the pointer; this changes nothing about the layout.
               className={cn(
-                "flex min-w-0 flex-col bg-surface p-6 transition-colors md:p-8",
-                activeReceipt === index && "bg-paper"
+                "relative flex min-w-0 flex-col bg-surface p-6 transition-colors duration-200 md:p-8",
+                "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:origin-left before:scale-x-0 before:bg-action before:transition-transform before:duration-300 before:ease-(--ease-entrance)",
+                activeReceipt === index && "bg-paper before:scale-x-100"
               )}
             >
               {/* Receipt header: an index mark and the connection's name, so the

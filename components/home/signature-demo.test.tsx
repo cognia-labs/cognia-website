@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react"
 import { DEMO_TASK } from "@web/content/demo-task"
 import { en } from "@web/content/en"
 import { zh } from "@web/content/zh"
+import { TRAVEL_PER_STEP_DVH } from "@web/hooks/use-pinned-progress"
 import { SignatureDemo } from "./signature-demo"
 
 let reduced = false
@@ -203,32 +204,42 @@ describe("SignatureDemo when scroll-pinned", () => {
     const { container } = render(
       <SignatureDemo copy={en.home.signature} reconstruction={en.reconstruction} />
     )
-    const wrapper = container.querySelector<HTMLElement>("[style*='dvh']")
-    expect(wrapper).toBeInTheDocument()
-    // 100dvh first step + 45dvh × (steps-1) subsequent steps
+    const travel = container.querySelector<HTMLElement>("#task [data-pinned-travel]")
+    expect(travel).toBeInTheDocument()
+    // One share of travel per step after the first.
     const steps = en.home.signature.steps.length
-    const expectedDvh = 100 + (steps - 1) * 45 // 325 for 6 steps
-    expect(wrapper?.style.height).toBe(`calc(${expectedDvh}dvh)`)
+    expect(travel?.style.height).toBe(`${(steps - 1) * TRAVEL_PER_STEP_DVH}dvh`)
   })
 
-  it("centres intrinsic content inside a full-height pinned viewport", () => {
+  it("pins a stage of intrinsic height, so the section neither opens nor closes on empty paper", () => {
     const { container } = render(
       <SignatureDemo copy={en.home.signature} reconstruction={en.reconstruction} />
     )
     const viewport = container.querySelector("#task [data-pinned-viewport]")
     const stage = container.querySelector("#task [data-pinned-stage]")
-    expect(viewport).toHaveClass(
-      "sticky",
-      "top-16",
-      "flex",
-      "h-[calc(100dvh-4rem)]",
-      "items-center"
-    )
+    expect(viewport).toHaveClass("sticky")
+    // A full-height viewport centring the panel left half a screen of blank
+    // paper above the stage on the way in and below it on the way out.
+    expect(viewport?.className).not.toMatch(/h-\[calc\(100dvh/)
+    expect(viewport).not.toHaveClass("items-center")
+    // The stage is the wrapper's first child: the hook measures its offset.
+    expect(viewport?.parentElement?.firstElementChild).toBe(viewport)
     expect(stage).toHaveClass("w-full")
-    expect(stage).not.toHaveClass("h-[min(46rem,calc(100dvh-5rem))]")
-    expect(stage).not.toHaveClass("h-[calc(100dvh-5rem)]")
     expect(container.querySelector("#task .bg-graphite")).not.toHaveClass("h-full")
     expect(container.querySelector("#task .signature-stage")).toBeInTheDocument()
+  })
+
+  it("renders no travel when it is not pinned", () => {
+    window.matchMedia = ((query: string) => ({
+      matches: false,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })) as unknown as typeof window.matchMedia
+    const { container } = render(
+      <SignatureDemo copy={en.home.signature} reconstruction={en.reconstruction} />
+    )
+    expect(container.querySelector("#task [data-pinned-travel]")).toBeNull()
   })
 
   it("states the task once, not again beside the pinned controls", () => {

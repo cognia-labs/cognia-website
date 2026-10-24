@@ -15,28 +15,29 @@ import { cn } from "@web/lib/utils"
  *
  * Two things deliberately absent:
  *
- *  - **No focus ring.** `globals.css` sets `:focus-visible { outline: 2px solid
- *    var(--action) }` for the whole site; shadcn's `ring-[3px]` would be a
- *    second, competing focus system on one page.
+ *  - **No focus ring of its own.** `globals.css` sets `:focus-visible {
+ *    outline: 2px solid var(--action) }` for the whole site; shadcn's
+ *    `ring-[3px]` would be a second, competing focus system on one page. Nor
+ *    `outline-none`: it is a utility, so it beats that base rule and left
+ *    every button without a visible focus at all.
  *  - **No `rounded-md`.** The radius scale here is `control` / `panel` /
  *    `stage` (spec §3.3), and `tailwind-merge` cannot resolve a conflict
  *    between `rounded-md` and `rounded-control` — see `lib/utils.test.ts`.
  */
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-control font-medium whitespace-nowrap outline-none disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-control font-medium whitespace-nowrap transition-[color,background-color,border-color,opacity,transform] duration-150 ease-out active:translate-y-px disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         /** The single primary action. Spec §7 forbids competing top-level CTAs. */
-        primary: "bg-ink text-paper transition-opacity hover:opacity-90",
-        outline: "border border-hairline-strong text-ink transition-colors hover:bg-surface",
-        ghost: "text-muted transition-colors hover:text-ink",
+        primary: "bg-ink text-paper hover:opacity-90",
+        outline: "border border-hairline-strong text-ink hover:bg-surface",
+        ghost: "text-muted hover:text-ink",
         /**
          * On the dark execution stage, which stays dark in both themes — so it
          * uses the `on-stage` tokens rather than `ink`/`paper`, which flip.
          */
-        stage:
-          "border border-on-stage-hairline text-on-stage-muted transition-colors hover:text-on-stage",
+        stage: "border border-on-stage-hairline text-on-stage-muted hover:text-on-stage",
       },
       size: {
         sm: "h-8 px-3 text-xs",

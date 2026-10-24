@@ -107,7 +107,11 @@ export function WorkbenchBento({ copy, common, reconstruction, index }: Workbenc
                       <span className="w-20 shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted">
                         {artifacts.plan.stateLabels[item.state]}
                       </span>
-                      <span className="min-w-0 flex-1 truncate text-sm text-ink">{item.text}</span>
+                      {/* Wraps rather than truncating: on a phone the hub is one
+                       * column wide and every step lost its second half. */}
+                      <span className="min-w-0 flex-1 text-sm leading-snug text-ink">
+                        {item.text}
+                      </span>
                     </li>
                   )
                 })}
@@ -141,16 +145,38 @@ export function WorkbenchBento({ copy, common, reconstruction, index }: Workbenc
               <Detail lines={[DEMO_TASK.approval.command, DEMO_TASK.test.command]} />
             </div>
 
-            <div className={`${cell} lg:col-span-4`} style={at(5)}>
-              <p className={label}>
-                {station}
-                {artifact.label}
-              </p>
-              <p className={body}>{artifact.body}</p>
-              <Detail
-                tone="ink"
-                lines={[`${DEMO_TASK.artifact.file} · ${DEMO_TASK.artifact.version}`]}
-              />
+            {/* The full-width close of the grid. On its own the claim left
+             * three quarters of the row empty, so the cell shows what the task
+             * produced: the same launch notes the signature section ends on. */}
+            <div
+              className={`${cell} lg:col-span-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-10`}
+              style={at(5)}
+            >
+              <div>
+                <p className={label}>
+                  {station}
+                  {artifact.label}
+                </p>
+                <p className={body}>{artifact.body}</p>
+                <Detail
+                  tone="ink"
+                  lines={[`${DEMO_TASK.artifact.file} · ${DEMO_TASK.artifact.version}`]}
+                />
+              </div>
+              <dl className="mt-6 grid gap-5 border-t border-hairline pt-5 sm:grid-cols-2 lg:mt-0 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+                {artifacts.artifact.sections.map((section) => (
+                  <div key={section.title} className="min-w-0">
+                    <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                      {section.title}
+                    </dt>
+                    {section.items.map((item) => (
+                      <dd key={item} className="mt-2 text-sm leading-relaxed text-ink">
+                        {item}
+                      </dd>
+                    ))}
+                  </div>
+                ))}
+              </dl>
             </div>
           </BentoGrid>
         </div>

@@ -84,7 +84,7 @@ export function RunMatrix({ copy, learnMore, locale, docsOrigin, index }: RunMat
                 <tr key={strategy.key} className="group align-top">
                   <th
                     scope="row"
-                    className="w-[30%] bg-paper px-5 py-4 font-medium text-ink transition-colors group-hover:bg-surface"
+                    className="w-[30%] bg-paper px-5 py-4 font-medium text-ink transition-colors group-hover:bg-surface group-focus-within:bg-surface"
                   >
                     {/* Name and docs link share a line, so a row is the
                      * name and its summary: as tall as the answers beside it,
@@ -114,7 +114,7 @@ export function RunMatrix({ copy, learnMore, locale, docsOrigin, index }: RunMat
                   {[strategy.leaves, strategy.receives, strategy.tools].map((answer, index) => (
                     <td
                       key={index}
-                      className="bg-paper px-5 py-4 text-sm leading-relaxed text-ink transition-colors group-hover:bg-surface"
+                      className="bg-paper px-5 py-4 text-sm leading-relaxed text-ink transition-colors group-hover:bg-surface group-focus-within:bg-surface"
                     >
                       {answer}
                     </td>

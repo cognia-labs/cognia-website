@@ -18,7 +18,8 @@ interface DemoFileTreeProps {
  * Renders `DEMO_TASK.files` under `DEMO_TASK.repository` as a collapsible
  * tree using Magic UI's FileTree component. All folders are expanded by default.
  *
- * No animation (FileTree is inherently static), so no reduced-motion gate needed.
+ * The only motion is the folder accordion's open/close height, a CSS
+ * transition the global reduced-motion rule already collapses.
  */
 export function DemoFileTree({ ariaLabel, copy }: DemoFileTreeProps) {
   const [selectedId, setSelectedId] = useState("file-source")

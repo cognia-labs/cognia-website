@@ -1,43 +1,40 @@
 /** @jest-environment jsdom */
-import { act, renderHook } from "@testing-library/react"
+import { act, render, renderHook } from "@testing-library/react"
 import {
   PIN_MIN_WIDTH,
-  indexFromScroll,
+  indexFromOffset,
   scrollTopForIndex,
   usePinnedProgress,
 } from "./use-pinned-progress"
 
-describe("indexFromScroll", () => {
-  const VIEWPORT = 800
-  const HEIGHT = 800 * 6 // six steps, one screen each
+describe("indexFromOffset", () => {
+  const TRAVEL = 2000
   const STEPS = 6
 
-  it("sits on the first step before the wrapper starts moving", () => {
-    expect(indexFromScroll(0, HEIGHT, VIEWPORT, STEPS)).toBe(0)
+  it("sits on the first step before the stage starts sliding", () => {
+    expect(indexFromOffset(0, TRAVEL, STEPS)).toBe(0)
   })
 
   it("reaches the last step at the end of the travel", () => {
-    expect(indexFromScroll(-(HEIGHT - VIEWPORT), HEIGHT, VIEWPORT, STEPS)).toBe(STEPS - 1)
+    expect(indexFromOffset(TRAVEL, TRAVEL, STEPS)).toBe(STEPS - 1)
   })
 
   it("advances one step per equal share of the travel", () => {
-    const travel = HEIGHT - VIEWPORT
     for (let step = 0; step < STEPS; step += 1) {
-      const top = -(travel * (step / (STEPS - 1)))
-      expect(indexFromScroll(top, HEIGHT, VIEWPORT, STEPS)).toBe(step)
+      expect(indexFromOffset(TRAVEL * (step / (STEPS - 1)), TRAVEL, STEPS)).toBe(step)
     }
   })
 
   it("clamps past both ends rather than running off the array", () => {
-    // Over-scroll (rubber banding on macOS) and scrolling back above the
-    // section both produce out-of-range tops.
-    expect(indexFromScroll(500, HEIGHT, VIEWPORT, STEPS)).toBe(0)
-    expect(indexFromScroll(-99999, HEIGHT, VIEWPORT, STEPS)).toBe(STEPS - 1)
+    // Over-scroll (rubber banding on macOS) and sub-pixel layout both produce
+    // offsets just outside the travel.
+    expect(indexFromOffset(-40, TRAVEL, STEPS)).toBe(0)
+    expect(indexFromOffset(99999, TRAVEL, STEPS)).toBe(STEPS - 1)
   })
 
   it("never returns a fractional or out-of-range index", () => {
-    for (let top = 200; top > -HEIGHT; top -= 37) {
-      const index = indexFromScroll(top, HEIGHT, VIEWPORT, STEPS)
+    for (let offset = -200; offset < TRAVEL + 200; offset += 37) {
+      const index = indexFromOffset(offset, TRAVEL, STEPS)
       expect(Number.isInteger(index)).toBe(true)
       expect(index).toBeGreaterThanOrEqual(0)
       expect(index).toBeLessThanOrEqual(STEPS - 1)
@@ -45,46 +42,48 @@ describe("indexFromScroll", () => {
   })
 
   it("degenerates safely when there is nothing to scroll through", () => {
-    // A wrapper shorter than the viewport has zero travel; dividing by it would
-    // yield Infinity and then NaN.
-    expect(indexFromScroll(-10, 400, VIEWPORT, STEPS)).toBe(0)
-    expect(indexFromScroll(-10, HEIGHT, VIEWPORT, 1)).toBe(0)
-    expect(indexFromScroll(-10, HEIGHT, VIEWPORT, 0)).toBe(0)
+    // Zero travel would divide to Infinity and then NaN.
+    expect(indexFromOffset(10, 0, STEPS)).toBe(0)
+    expect(indexFromOffset(10, -50, STEPS)).toBe(0)
+    expect(indexFromOffset(10, TRAVEL, 1)).toBe(0)
+    expect(indexFromOffset(10, TRAVEL, 0)).toBe(0)
   })
 })
 
 describe("scrollTopForIndex", () => {
-  const VIEWPORT = 800
-  const HEIGHT = 800 * 6
+  const TRAVEL = 2000
+  const STICKY_TOP = 200
   const STEPS = 6
   const DOC_TOP = 3200
 
-  it("round-trips with indexFromScroll", () => {
+  it("round-trips with indexFromOffset", () => {
     // The controls scroll rather than set state, so these two have to agree or
     // clicking step 4 would land the reader on step 3.
     for (let step = 0; step < STEPS; step += 1) {
-      const scrollTop = scrollTopForIndex(DOC_TOP, HEIGHT, VIEWPORT, STEPS, step)
-      const rectTop = DOC_TOP - scrollTop
-      expect(indexFromScroll(rectTop, HEIGHT, VIEWPORT, STEPS)).toBe(step)
+      const scrollTop = scrollTopForIndex(DOC_TOP, TRAVEL, STICKY_TOP, STEPS, step)
+      // Pinned, the stage holds at STICKY_TOP while the wrapper scrolls past.
+      const offset = STICKY_TOP - (DOC_TOP - scrollTop)
+      expect(indexFromOffset(offset, TRAVEL, STEPS)).toBe(step)
     }
   })
 
-  it("puts the first step at the top of the wrapper", () => {
-    expect(scrollTopForIndex(DOC_TOP, HEIGHT, VIEWPORT, STEPS, 0)).toBe(DOC_TOP)
+  it("puts the first step where the stage starts to hold", () => {
+    expect(scrollTopForIndex(DOC_TOP, TRAVEL, STICKY_TOP, STEPS, 0)).toBe(DOC_TOP - STICKY_TOP)
   })
 
   it("clamps an out-of-range index", () => {
-    expect(scrollTopForIndex(DOC_TOP, HEIGHT, VIEWPORT, STEPS, -5)).toBe(
-      scrollTopForIndex(DOC_TOP, HEIGHT, VIEWPORT, STEPS, 0)
+    expect(scrollTopForIndex(DOC_TOP, TRAVEL, STICKY_TOP, STEPS, -5)).toBe(
+      scrollTopForIndex(DOC_TOP, TRAVEL, STICKY_TOP, STEPS, 0)
     )
-    expect(scrollTopForIndex(DOC_TOP, HEIGHT, VIEWPORT, STEPS, 99)).toBe(
-      scrollTopForIndex(DOC_TOP, HEIGHT, VIEWPORT, STEPS, STEPS - 1)
+    expect(scrollTopForIndex(DOC_TOP, TRAVEL, STICKY_TOP, STEPS, 99)).toBe(
+      scrollTopForIndex(DOC_TOP, TRAVEL, STICKY_TOP, STEPS, STEPS - 1)
     )
   })
 
-  it("degenerates safely with one step or a short wrapper", () => {
-    expect(scrollTopForIndex(DOC_TOP, HEIGHT, VIEWPORT, 1, 0)).toBe(DOC_TOP)
-    expect(scrollTopForIndex(DOC_TOP, 400, VIEWPORT, STEPS, 3)).toBe(DOC_TOP)
+  it("degenerates safely with one step, no travel or a stage near the top", () => {
+    expect(scrollTopForIndex(DOC_TOP, TRAVEL, STICKY_TOP, 1, 0)).toBe(DOC_TOP - STICKY_TOP)
+    expect(scrollTopForIndex(DOC_TOP, 0, STICKY_TOP, STEPS, 3)).toBe(DOC_TOP - STICKY_TOP)
+    expect(scrollTopForIndex(50, TRAVEL, STICKY_TOP, STEPS, 0)).toBe(0)
   })
 })
 
@@ -174,6 +173,51 @@ describe("usePinnedProgress", () => {
     expect(events).not.toContain("wheel")
     expect(events).not.toContain("touchmove")
     add.mockRestore()
+  })
+
+  it("does no layout work for scrolling while the section is far away", () => {
+    stubViewport(true)
+    let report: (entries: Array<{ isIntersecting: boolean }>) => void = () => {}
+    const OriginalObserver = globalThis.IntersectionObserver
+    globalThis.IntersectionObserver = class {
+      constructor(callback: typeof report) {
+        report = callback
+      }
+      observe() {}
+      disconnect() {}
+    } as unknown as typeof IntersectionObserver
+    // Run frames synchronously, so each scheduled measure is one call.
+    const frame = jest.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+      callback(0)
+      return 0
+    })
+
+    function Probe() {
+      const { wrapperRef } = usePinnedProgress({ steps: 6, enabled: true })
+      return (
+        <div ref={wrapperRef}>
+          <div />
+        </div>
+      )
+    }
+    render(<Probe />)
+
+    act(() => report([{ isIntersecting: false }]))
+    frame.mockClear()
+    act(() => {
+      window.dispatchEvent(new Event("scroll"))
+    })
+    expect(frame).not.toHaveBeenCalled()
+
+    act(() => report([{ isIntersecting: true }]))
+    frame.mockClear()
+    act(() => {
+      window.dispatchEvent(new Event("scroll"))
+    })
+    expect(frame).toHaveBeenCalledTimes(1)
+
+    frame.mockRestore()
+    globalThis.IntersectionObserver = OriginalObserver
   })
 
   it("listens passively so scrolling is never blocked on the handler", () => {

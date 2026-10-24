@@ -9,12 +9,12 @@ export const PIN_MIN_WIDTH = 1024
 export const PIN_MIN_HEIGHT = 640
 
 /**
- * How far the reader scrolls, in viewport heights, to advance one step.
+ * How far the reader scrolls, in `dvh`, to advance one step.
  *
- * One full screen per step: less and the steps flick past before the panel can
- * be read, more and the section feels stuck.
+ * Under half a screen: long enough to read each state, short enough that the
+ * section never strands the reader inside several mostly empty screens.
  */
-export const SCREENS_PER_STEP = 1
+export const TRAVEL_PER_STEP_DVH = 45
 
 /**
  * Which step a scroll position lands on.
@@ -23,38 +23,52 @@ export const SCREENS_PER_STEP = 1
  * jsdom reports every rect as zero, so a hook-level test could never exercise
  * this. Same split as `pickActive` in `use-section-progress.ts`.
  *
- * `top` is the wrapper's viewport-relative top (negative once pinning starts).
- * Travel is the wrapper height minus one viewport, because the last step has to
- * stay readable while the sticky child sits at the wrapper's bottom edge.
+ * `offset` is how far the sticky stage has slid down inside its wrapper, and
+ * `travel` is how far it can slide: the wrapper's height less the stage's own.
+ * The stage is only as tall as its content, so the section neither opens nor
+ * closes on a viewport of empty paper around a centred panel; the travel is a
+ * spacer under it, and the stage's offset over that spacer is the progress.
  */
-export function indexFromScroll(
-  top: number,
-  wrapperHeight: number,
-  viewportHeight: number,
-  steps: number
-): number {
-  if (steps <= 1) return 0
-  const travel = wrapperHeight - viewportHeight
-  if (travel <= 0) return 0
-  const progress = Math.min(Math.max(-top / travel, 0), 1)
+export function indexFromOffset(offset: number, travel: number, steps: number): number {
+  if (steps <= 1 || travel <= 0) return 0
+  const progress = Math.min(Math.max(offset / travel, 0), 1)
   // `steps - 1` bands rather than `steps`: progress 1 must land on the last
   // step, and flooring `progress * steps` only reaches it exactly at 1.0, which
   // sub-pixel scroll positions never quite hit.
   return Math.min(Math.round(progress * (steps - 1)), steps - 1)
 }
 
-/** Scroll offset that makes `index` the active step. */
+/**
+ * Scroll offset that makes `index` the active step.
+ *
+ * While pinned the stage sits at `stickyTop` in the viewport, so its offset in
+ * the wrapper is `stickyTop - (wrapperTop - scrollY)`; solving that for the
+ * offset `index` needs gives the scroll position.
+ */
 export function scrollTopForIndex(
   wrapperTopInDocument: number,
-  wrapperHeight: number,
-  viewportHeight: number,
+  travel: number,
+  stickyTop: number,
   steps: number,
   index: number
 ): number {
-  if (steps <= 1) return wrapperTopInDocument
-  const travel = Math.max(wrapperHeight - viewportHeight, 0)
+  if (steps <= 1 || travel <= 0) return Math.max(wrapperTopInDocument - stickyTop, 0)
   const fraction = Math.min(Math.max(index, 0), steps - 1) / (steps - 1)
-  return wrapperTopInDocument + travel * fraction
+  return Math.max(wrapperTopInDocument + travel * fraction - stickyTop, 0)
+}
+
+/** The stage and the travel it slides over, read from the wrapper's layout. */
+function measureStage(wrapper: HTMLElement) {
+  const stage = wrapper.firstElementChild as HTMLElement | null
+  const outer = wrapper.getBoundingClientRect()
+  if (!stage) return { offset: 0, travel: 0, stickyTop: 0, wrapperTop: outer.top }
+  const inner = stage.getBoundingClientRect()
+  return {
+    offset: inner.top - outer.top,
+    travel: outer.height - inner.height,
+    stickyTop: Number.parseFloat(window.getComputedStyle(stage).top) || 0,
+    wrapperTop: outer.top,
+  }
 }
 
 interface UsePinnedProgressOptions {
@@ -76,8 +90,10 @@ interface PinnedProgress {
   /**
    * Whether pinning is live. `false` on the server, on the first client render,
    * under reduced motion, and below the desktop width/height floor — so the
-   * caller can render its ordinary layout in every one of those cases. Tall
-   * screens remain eligible: the pinned viewport centres its intrinsic panel.
+   * caller can render its ordinary layout in every one of those cases.
+   *
+   * The wrapper's first child is the sticky stage; whatever follows it is the
+   * travel the reader scrolls through while the stage holds.
    */
   pinned: boolean
   /** Scroll so `index` becomes the active step. Keeps the controls working. */
@@ -145,8 +161,8 @@ export function usePinnedProgress({ steps, enabled }: UsePinnedProgressOptions):
       }
       const node = wrapperRef.current
       if (!node) return
-      const rect = node.getBoundingClientRect()
-      setIndex(indexFromScroll(rect.top, rect.height, window.innerHeight, steps))
+      const { offset, travel } = measureStage(node)
+      setIndex(indexFromOffset(offset, travel, steps))
     }
 
     const schedule = () => {
@@ -156,17 +172,39 @@ export function usePinnedProgress({ steps, enabled }: UsePinnedProgressOptions):
       frame = window.requestAnimationFrame(measure)
     }
 
+    // Scrolling elsewhere on the page has nothing to measure. While the
+    // section is more than a screen away the handler returns at once; the
+    // observer measures once more on the way out, so the index settles on the
+    // step the reader left it at, and again on the way back in.
+    let near = true
+    const node = wrapperRef.current
+    const observer =
+      node && typeof IntersectionObserver === "function"
+        ? new IntersectionObserver(
+            (entries) => {
+              near = entries.some((entry) => entry.isIntersecting)
+              schedule()
+            },
+            { rootMargin: "100% 0px" }
+          )
+        : null
+    if (node) observer?.observe(node)
+
+    const onScroll = () => {
+      if (near) schedule()
+    }
     const apply = () => measure()
 
     apply()
     query.addEventListener("change", apply)
-    window.addEventListener("scroll", schedule, { passive: true })
+    window.addEventListener("scroll", onScroll, { passive: true })
     window.addEventListener("resize", schedule)
 
     return () => {
       if (frame) window.cancelAnimationFrame(frame)
+      observer?.disconnect()
       query.removeEventListener("change", apply)
-      window.removeEventListener("scroll", schedule)
+      window.removeEventListener("scroll", onScroll)
       window.removeEventListener("resize", schedule)
     }
   }, [enabled, steps])
@@ -175,17 +213,11 @@ export function usePinnedProgress({ steps, enabled }: UsePinnedProgressOptions):
     (next: number) => {
       const node = wrapperRef.current
       if (!node || typeof window === "undefined") return
-      const rect = node.getBoundingClientRect()
+      const { travel, stickyTop, wrapperTop } = measureStage(node)
       window.scrollTo({
-        top: scrollTopForIndex(
-          rect.top + window.scrollY,
-          rect.height,
-          window.innerHeight,
-          steps,
-          next
-        ),
-        // The page sets `scroll-behavior: smooth`, which the reduced-motion belt
-        // already overrides; nothing extra is needed here.
+        top: scrollTopForIndex(wrapperTop + window.scrollY, travel, stickyTop, steps, next),
+        // An explicit `behavior` ignores the CSS `scroll-behavior` belt, so
+        // this is only safe because pinning never runs under reduced motion.
         behavior: "smooth",
       })
     },

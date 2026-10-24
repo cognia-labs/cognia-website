@@ -16,6 +16,8 @@ jest.mock("motion/react", () => ({
     ),
   },
   useMotionTemplate: () => "",
+  useMotionValue: (value: number) => ({ get: () => value, set: () => {} }),
+  useTransform: () => 0,
 }))
 
 import { StageLens } from "./stage-lens"

@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useInView } from "motion/react"
+import { useEffect, useRef, useState } from "react"
 import { useReducedMotion } from "@web/hooks/use-reduced-motion"
 
 import { Terminal } from "@web/components/ui/terminal"
@@ -58,15 +59,19 @@ export function DesktopTerminal({ copy }: DesktopTerminalProps) {
   const [playRequested, setPlayRequested] = useState(true)
   const complete = reduced || visibleCount >= script.length
   const playing = playRequested && !complete
+  // Plays when the reader reaches it, not from page load: by then a
+  // transcript that started on mount had long finished off screen.
+  const ref = useRef<HTMLElement>(null)
+  const inView = useInView(ref, { once: true, amount: 0.4 })
 
   useEffect(() => {
-    if (reduced || !playing || complete) return
+    if (reduced || !playing || complete || !inView) return
 
     const timer = window.setTimeout(() => {
       setVisibleCount((count) => Math.min(count + 1, script.length))
     }, 700)
     return () => window.clearTimeout(timer)
-  }, [complete, playing, reduced, visibleCount, script.length])
+  }, [complete, playing, reduced, inView, visibleCount, script.length])
 
   const restart = () => {
     setVisibleCount(1)
@@ -76,7 +81,7 @@ export function DesktopTerminal({ copy }: DesktopTerminalProps) {
   const visibleLines = reduced ? script : script.slice(0, visibleCount)
 
   return (
-    <section className="w-full min-w-0" aria-label={copy.title}>
+    <section ref={ref} className="w-full min-w-0" aria-label={copy.title}>
       <Terminal title={copy.title} sequence={false} className="max-w-none border-0 md:border-0">
         {visibleLines.map((line) => (
           <span key={line.key} className={stateClass[line.state]}>

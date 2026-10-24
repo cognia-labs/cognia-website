@@ -112,7 +112,7 @@ export function UseCasePage({ locale, variant }: UseCasePageProps) {
 
       <Section tone="surface">
         <SectionHeading title={page.capabilities.title} subtitle={page.capabilities.subtitle} />
-        <div className="mt-12">
+        <div className="mt-14">
           <CapabilityGrid
             entries={page.capabilities.entries}
             learnMore={copy.common.learnMore}

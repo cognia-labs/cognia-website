@@ -45,7 +45,7 @@ export function FaqSection({ copy, locale, docsOrigin, index }: FaqSectionProps)
                     <Icon
                       name="chevronDown"
                       size={16}
-                      className="mt-1 shrink-0 text-muted transition-transform duration-200 group-open:rotate-180"
+                      className="mt-1 shrink-0 text-muted transition-transform duration-[260ms] ease-(--ease-entrance) group-open:rotate-180"
                     />
                   </summary>
                   <div className="pb-7 pr-10">

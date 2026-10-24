@@ -101,4 +101,17 @@ describe("Reveal", () => {
     const second = render(<Reveal className="my-class">content</Reveal>)
     expect(second.container.querySelector(".my-class")).toBeInTheDocument()
   })
+
+  it("marks a view-triggered block as seen only once it enters the viewport", () => {
+    render(<Reveal>cells</Reveal>)
+    // CSS sequences inside the block (`.station-lit`) wait on `data-seen`, so
+    // it must start absent and be set by the viewport callback, not on mount.
+    expect(motionProps[0]["data-seen"]).toBeUndefined()
+    expect(typeof motionProps[0].onViewportEnter).toBe("function")
+  })
+
+  it("marks a mount-triggered block as seen straight away", () => {
+    render(<Reveal trigger="mount">hero</Reveal>)
+    expect(motionProps[0]["data-seen"]).toBe("")
+  })
 })

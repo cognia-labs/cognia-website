@@ -121,3 +121,27 @@ describe("useStepRail autoplay", () => {
     expect(result.current.playing).toBe(false)
   })
 })
+
+describe("useStepRail while paused", () => {
+  beforeEach(() => jest.useFakeTimers())
+  afterEach(() => jest.useRealTimers())
+
+  it("holds autoplay without cancelling it, and resumes where it stood", () => {
+    const { result, rerender } = renderHook(
+      ({ paused }) => useStepRail({ total: 6, intervalMs: 1000, paused }),
+      { initialProps: { paused: true } }
+    )
+    // Off screen: nothing advances, but the run is still requested.
+    act(() => {
+      jest.advanceTimersByTime(5000)
+    })
+    expect(result.current.index).toBe(0)
+    expect(result.current.playing).toBe(true)
+
+    rerender({ paused: false })
+    act(() => {
+      jest.advanceTimersByTime(1000)
+    })
+    expect(result.current.index).toBe(1)
+  })
+})

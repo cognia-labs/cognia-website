@@ -108,4 +108,14 @@ describe("PageHeader", () => {
     )
     expect(screen.getByText("Latest release")).toBeInTheDocument()
   })
+
+  it("keeps the header visible in the server markup", () => {
+    const { container } = render(
+      <PageHeader copy={en.product.header} common={en.common} locale="en" />
+    )
+    // The headline and subtitle animate from CSS; no motion wrapper holds the
+    // page's h1 at opacity 0 until hydration.
+    expect(container.querySelector("[data-reveal]")).toBeNull()
+    expect(screen.getByText(en.product.header.subtitle)).toHaveClass("enter-fade")
+  })
 })

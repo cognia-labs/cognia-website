@@ -159,7 +159,7 @@ export function WorkbenchReconstruction({
                   !
                 </span>
                 <p
-                  className={`font-mono text-[10px] uppercase tracking-widest text-approval ${
+                  className={`font-mono text-[10px] uppercase tracking-widest text-ink ${
                     live ? ARRIVE : ""
                   }`}
                 >

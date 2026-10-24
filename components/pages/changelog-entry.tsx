@@ -19,6 +19,8 @@ const BUMP_ICON: Record<Bump, IconName> = {
   patch: "bumpPatch",
 }
 
+/** Colour for the bump glyph only. The word beside it is text and stays in
+ * ink: cyan on paper is 1.69:1, and red reads as failure, not as a tier. */
 const BUMP_CLASS: Record<Bump, string> = {
   major: "text-destructive",
   minor: "text-action",
@@ -45,14 +47,12 @@ export function ChangelogEntry({ entry, copy }: ChangelogEntryProps) {
   return (
     <li className="border-b border-hairline py-6">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span
-          className={`flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest ${BUMP_CLASS[entry.bump]}`}
-        >
-          <Icon name={BUMP_ICON[entry.bump]} size={14} />
+        <span className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-ink">
+          <Icon name={BUMP_ICON[entry.bump]} size={14} className={BUMP_CLASS[entry.bump]} />
           {copy.bumpLabels[entry.bump]}
         </span>
         <span className="font-mono text-xs text-muted">{formatDate(entry.date)}</span>
-        <span className="ml-auto truncate font-mono text-[10px] text-stone">{entry.id}</span>
+        <span className="ml-auto truncate font-mono text-[10px] text-muted">{entry.id}</span>
       </div>
 
       <div

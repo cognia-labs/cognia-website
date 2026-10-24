@@ -47,7 +47,7 @@ export function TrustPage({ locale }: { locale: Locale }) {
 
       <Section tone="paper">
         <SectionHeading title={evidence.title} subtitle={evidence.subtitle} />
-        <div className="mt-12 overflow-x-auto">
+        <div className="mt-14 overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="border-b border-hairline-strong">

@@ -36,12 +36,14 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
   reverse = false, // Include the reverse prop
   duration = 5,
   delay = 0,
-  pathColor = "gray",
+  pathColor = "var(--hairline-strong)",
   pathWidth = 2,
   pathOpacity = 0.2,
-  gradientStartColor = "#ffaa40",
-  gradientStopColor = "#9c40ff",
-  repeat = Infinity,
+  // Magic UI ships an amber-to-purple beam that loops forever. The defaults
+  // here are the site's: a cyan path signal that runs once.
+  gradientStartColor = "var(--action)",
+  gradientStopColor = "var(--action)",
+  repeat = 0,
   repeatDelay = 0,
   startXOffset = 0,
   startYOffset = 0,
