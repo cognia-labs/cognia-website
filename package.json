@@ -46,7 +46,7 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
-    "@lobehub/icons-static-svg": "^1.95.1",
+    "@lobehub/icons-static-svg": "^1.98.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.6.3",
     "@types/react": "^19.3.0",
@@ -63,12 +63,12 @@
     "@testing-library/user-event": "^14.6.1",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
-    "eslint": "^9.39.5",
-    "eslint-config-next": "16.3.6",
+    "eslint": "^10.13.0",
+    "eslint-config-next": "16.4.3",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.9",
     "@playwright/test": "^1.63.0",
-    "wrangler": "4.141.0",
+    "wrangler": "4.152.0",
     "jest-junit": "^17.0.0",
     "yaml": "^2.9.1"
   },
